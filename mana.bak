@@ -1,0 +1,27 @@
+#!r6rs
+
+(library
+ (export mana-unit
+         manapool)
+ (import (rnrs base (6)))
+ 
+ (define (mana-unit color)
+   (define (get-color)
+     color)
+   
+   (define (obj-mana-unit msg . args)
+     (case msg
+       ((get-color) (apply get-color args))
+       (else (assertion-failure 'mana-unit "message not understood" msg))))
+   
+   obj-mana-unit)
+ 
+ (define (manapool)
+   (define (add! mana)
+     (
+   (define (obj-mana-unit msg . args)
+     (case msg
+       ((get-color) (apply get-color args))
+       (else (assertion-failure 'mana-unit "message not understood" msg))))
+   
+   obj-mana-unit)

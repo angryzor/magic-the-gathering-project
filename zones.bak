@@ -1,0 +1,16 @@
+(define (zone)
+  (define cards (position-list eq?))
+  
+  (define (find-pos idx)
+    (define (iter pos n)
+      (if (and (> n 0)
+               (cards 'has-next? pos))
+          (iter (cards 'next pos) (- n 1))
+          pos))
+    (if (cards 'empty?)
+        (error 'zone.find-pos "searching for position in empty list" idx)
+        (iter (cards 'first-position) idx)))
+  
+  (define (add-card card . idx)
+    (cond ((null? idx) (cards 'add-before! card))
+          ((
