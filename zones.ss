@@ -1,3 +1,5 @@
+#!r6rs
+
 (library
  (zones)
  (export zone-stack
@@ -6,7 +8,8 @@
          zone-hand
          zone-in-play)
  (import (rnrs base (6))
-         (magic double-linked-position-list))
+         (magic double-linked-position-list)
+         (magic cards))
  
  (define (zone)
    (define super (position-list eq?))

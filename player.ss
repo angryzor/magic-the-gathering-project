@@ -2,10 +2,11 @@
 
 
 (library
+ (player)
  (export player)
  (import (rnrs base (6))
          (magic mana)
-         (magic fields)
+         (magic fields))
  
  (define (player)
    (define my-field (player-field player))

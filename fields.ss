@@ -4,7 +4,9 @@
  (fields)
  (export player-field
          main-field)
- (import double-linked-position-list)
+ (import (rnrs base (6))
+         (magic double-linked-position-list)
+         (magic zones))
  
  (define (player-field player)
    (define in-play (zone-in-play))
