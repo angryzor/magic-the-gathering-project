@@ -8,7 +8,7 @@
          (magic mana)
          (magic fields))
  
- (define (player)
+ (define (player field)
    (define my-field (player-field player))
    (define my-mana (manapool))
    (define my-view '())
@@ -35,10 +35,10 @@
        ((set-life-counter!) (apply set-life-counter! args))
        ((check-dead) (apply check-dead args))
        ((get-view) (apply get-view args))
-       (else (assertion-failure 'player "message not understood" msg))))
+       (else (assertion-violation 'player "message not understood" msg))))
    
    (field 'add-player-field! my-field)
-   (set! my-view (player-view obj-player))
+;   (set! my-view (player-view obj-player)) ; not yet implemented
    
    obj-player)
  )

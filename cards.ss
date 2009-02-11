@@ -2,7 +2,11 @@
 
 (library 
  (cards)
- (export card-sorcery
+ (export card
+         card-stackable
+         card-permanent
+         card-with-actions
+         card-sorcery
          card-instant
          card-enchantment
          card-action
@@ -12,9 +16,11 @@
  (import (rnrs)
          (rnrs base (6))
          (magic double-linked-position-list)
+         (magic game)
          (magic mana))
  
- (define (game) 'ok)
+ (define (gui) 'ok)
+ 
  
  (define (extract-this obj this-a)
    (if (null? this-a)
@@ -335,23 +341,42 @@
    (define health toughness)
    (define special-attribs (position-list eq?))
    
+   (define blocker #f)
+   (define attacks #f)
+   
+   (define (is-blocked! by)
+     (if attacks
+         (set! blocker by)
+         (assertion-violation 'card-creature.is-blocked! "this creature doesn't even attack!" this by)))
+   
+   (define (attacks!)
+     (set! attacks #t))
+   
+   (define (deal-damage)
+     (if attacks
+         (if blocker
+             (damage-creature)
+             (damage-player (let* ([players (game 'get-players)]
+                                   [pos (players 'first-position)]
+                                   [anopponentpos (players 'next pos)]) ; need to do this better (have choice)
+                              (players 'value anopponentpos))))))
+   
    (define (damage-player player)
-     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage)))
+     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this player)))
    
-   
+   (define (damage-creature)
+     (set! health toughness)
+     (blocker 'set-health! (blocker 'get-toughness))
+     (let ([stack ((game 'get-field) 'get-stack-zone)])
+       (stack 'push! (card-virtual-blocked-combat-damage this blocker))
+       (stack 'push! (card-virtual-blocked-combat-damage blocker this))))
+
    (define (can-block? attacker)
-     #f)
-   (define (block attacker)
-     (attacker 'set-health! (- (attacker 'get-health) (get-power)))
-     (set-health! (- (get-health) (attacker 'get-power)))
-     (if (<= (attacker 'get-health) 0)
-         ((player 'get-player-field) 'search-and-destroy! attacker))
-     (if (<= (get-health) 0)
-         (((attacker 'get-player) 'get-player-field) 'search-and-destroy! obj-card-creature)))
-   
+     #t) ; special-attribs should be calculated here
    
    (define (turn-end)
-     (set! health toughness)
+     (set! blocker #f)
+     (set! attacks #f)
      (super 'turn-end))
    
    
@@ -388,9 +413,8 @@
    
    (define (obj-card-creature msg . args)
      (case msg
-       ((damage-player) (apply damage-player args))
+       ((deal-damage) (apply deal-damage args))
        ((can-block?) (apply can-block? args))
-       ((block attacker) (apply block args))
        ((turn-end) (apply turn-end args))
        ((get-power) (apply get-power args))
        ((set-power!) (apply set-power! args))
@@ -398,6 +422,8 @@
        ((set-toughness!) (apply set-toughness! args))
        ((get-health) (apply get-health args))
        ((set-health!) (apply set-health! args))
+       ((is-blocked!) (apply is-blocked! args))
+       ((attacks!) (apply attacks! args))
        ((get-special-attributes) (apply get-special-attributes args))
        ((has-special-attribute?) (apply has-special-attribute? args))
        ((add-special-attribute!) (apply add-special-attribute! args))
@@ -408,6 +434,19 @@
    
    (define this (extract-this obj-card-creature this-a))
    (define super (card-with-actions name color cost player))
+   
+   (super 'add-action! (card-action "Attack"
+                                    (lambda ()
+                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
+                                           (eq? player (game 'get-active-player))))
+                                    (lambda ()
+                                      (attacks!))))
+   (super 'add-action! (card-action "Block"
+                                    (lambda ()
+                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
+                                           (not (eq? player (game 'get-active-player)))))
+                                    (lambda ()
+                                      ((gui 'wait-for-target-card-selection) 'is-blocked! this))))
    
    obj-card-creature)
  

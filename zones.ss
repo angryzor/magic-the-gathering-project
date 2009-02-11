@@ -14,43 +14,19 @@
  (define (zone)
    (define super (position-list eq?))
    
-   (define (find-pos idx)
-     (define (iter pos n)
-       (if (and (> n 0)
-                (super 'has-next? pos))
-           (iter (super 'next pos) (- n 1))
-           pos))
-     (if (super 'empty?)
-         (error 'zone.find-pos "searching for position in empty list" idx)
-         (iter (super 'first-position) idx)))
-   
-   (define (add-card card . idx)
-     (cond ((null? idx) (super 'add-before! card))
-           ((= (length idx) 1) (super 'add-before! card (find-pos idx)))
-           (else (assertion-violation 'zone.add-card "too many arguments" idx))))
+   (define (add-card! card . newpos)
+     (apply super 'add-before! card newpos))
    
    (define (delete-card! card)
-     (let ((pos (super 'find card)))
+     (let ([pos (super 'find card)])
        (if pos
            (super 'delete! pos)
            (error 'zone.delete-card! "card does not exist!" card))))
-   
-   (define (delete-by-index! idx)
-     (if (super 'empty?)
-         (error 'zone.delete-by-index! "zone is empty!" card)
-         (super 'delete! (find-pos idx))))
-   
-   (define (get-at-index idx)
-     (if (super 'empty?)
-         (error 'zone.delete-by-index! "zone is empty!" card)
-         (super 'value (find-pos idx))))
    
    (define (obj-zone msg . args)
      (case msg
        ((add-card!) (apply add-card! args))
        ((delete-card!) (apply delete-card! args))
-       ((delete-by-index!) (apply delete-by-index! args))
-       ((get-at-index) (apply get-at-index args))
        (else (assertion-violation 'zone "message not understood" msg))))
    obj-zone)
  
@@ -58,15 +34,20 @@
    (define super (zone))
    
    (define (push! card)
-     (add-card! card))
+     (super 'add-card! card))
    
    (define (top)
-     (super 'get-at-index 0))
+     (if (super 'empty?)
+         (error 'zone-stacklike.top "zone is empty")
+         (super 'first-position)))
    
    (define (pop!)
-     (let ((card (super 'get-at-index 0)))
-       (super 'delete-by-index! 0)
-       card))
+     (if (super 'empty?)
+         (error 'zone-stacklike.pop! "zone is empty")
+         (let* ([pos (super 'first-position)]
+                [card (super 'value pos)])
+           (super 'delete! pos)
+           card)))
    
    (define (obj-zone-stacklike msg . args)
      (case msg
@@ -90,13 +71,14 @@
      (add-card! card))
    
    (define (resolve-one!)
-     (let ([card (pop!)])
+     (let ([card (super 'pop!)])
        (card 'cast)))
    
    (define (obj-zone-stack msg . args)
      (case msg
        ((add-card!) (apply add-card! args))
        ((push!) (apply push! args))
+       ((resolve-one!) (apply resolve-one! args))
        (else (apply super args))))
    obj-zone-stack)
  
@@ -107,7 +89,7 @@
      #f)
    
    (define (draw)
-     (pop!))
+     (super 'pop!))
    
    (define (obj-zone-library msg . args)
      (case msg
@@ -127,12 +109,8 @@
  (define (zone-hand)
    (define super (zone))
    
-   (define (sort old-idx new-idx)
-     (let ((card (super 'get-at-index old-idx)))
-       (super 'delete-by-index! old-idx)
-       (super 'add-card! card (if (> new-idx old-idx)
-                                  (+ new-idx 1)
-                                  new-idx))))
+   (define (sort old-pos new-pos)
+     #f)
    
    (define (obj-zone-hand msg . args)
      (case msg

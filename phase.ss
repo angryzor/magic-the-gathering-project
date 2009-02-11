@@ -2,40 +2,42 @@
 
 (library
  (phase)
- (export untap-phase)
+ (export phases-fsm)
  (import (rnrs base (6))
          (magic fsm)
-         (magic cards))
+         (magic cards)
+         (magic fields))
  
- (define (phase-state entry-action exit-action type)
-   (define (to-all-perms msg . args)
-     (define (to-all-perms-in-zone zone msg . args)
-       (zone 'for-each (lambda (card)
-                         (if (card 'supports-type? card-permanent)
-                             (apply card msg args)))))
-     (let ([pfields (field 'get-player-fields)])
-       (pfields 'for-each (lambda (pfield)
-                            (apply to-all-perms-in-zone (pfield 'get-in-play-zone) msg args)))))
+ 
+ 
+ 
+ (define (phases-fsm game)
    
-   (define super (fsm-state (lambda ()
-                              (entry-action)
-                              (to-all-perms 'turn-begin))
-                            (lambda ()
-                              (to-all-perms 'turn-end)
-                              (exit-action))))
-   
-   (define (get-type)
-     type)
-   
-   (define (obj-phase-state msg . args)
-     (case msg
-       ((get-type) (apply get-type args))
-       (else (apply super msg args))))
-   obj-phase-state)
- 
- 
- 
- (define (phases-fsm)
+   (define (phase-state entry-action exit-action type)
+     (define (to-all-perms msg . args)
+       (define (to-all-perms-in-zone zone msg . args)
+         (zone 'for-each (lambda (card)
+                           (if (card 'supports-type? card-permanent)
+                               (apply card msg args)))))
+       (let ([pfields ((game 'get-field) 'get-player-fields)])
+         (pfields 'for-each (lambda (pfield)
+                              (apply to-all-perms-in-zone (pfield 'get-in-play-zone) msg args)))))
+     
+     (define super (fsm-state (lambda ()
+                                (entry-action)
+                                (to-all-perms 'turn-begin))
+                              (lambda ()
+                                (to-all-perms 'turn-end)
+                                (exit-action))))
+     
+     (define (get-type)
+       type)
+     
+     (define (obj-phase-state msg . args)
+       (case msg
+         ((get-type) (apply get-type args))
+         (else (apply super msg args))))
+     obj-phase-state)
    
    ;Beginning phases
    (define phase-beginning-untap (phase-state (lambda ()
@@ -80,9 +82,12 @@
                                                         'ok)
                                                       'combat-declare-blockers))
    (define phase-combat-damage (phase-state (lambda ()
-                                              'ok)
+                                              (let* ([ap (game 'get-active-player)])
+                                                (((ap 'get-player-field) 'get-in-play-zone) 'for-each (lambda (card)
+                                                                                                        (if (card 'supports-type? 'card-creature)
+                                                                                                            (card 'deal-damage))))))
                                             (lambda ()
-                                              'ok)
+                                              )
                                             'combat-damage))
    (define phase-combat-end (phase-state (lambda ()
                                            'ok)
@@ -117,11 +122,22 @@
                                             (player 'ready?)))
           (not (((game 'get-field) 'get-stack-zone) 'empty?))))
    
+   (define super (fsm phase-beginning-untap))
+   
+   (define (get-current-type)
+     ((super 'get-current-state) 'get-type))
+   
+   (define (obj-phases-fsm msg . args)
+     (case msg
+       ((get-current-type) (apply get-current-type args))
+       (else (apply super msg args))))
+
+   
    ; Add recurring transitions
    (define (add-stack-resolvers! state end-state . trans-action)
-       (state 'add-transition! (apply fsm-transition playersready-nostack? end-state trans-action))
-       (state 'add-transition! (fsm-transition playersready-somestack? state (lambda ()
-                                                                                 (((game 'get-field) 'get-stack-zone) 'resolve-one!)))))
+     (state 'add-transition! (apply fsm-transition playersready-nostack? end-state trans-action))
+     (state 'add-transition! (fsm-transition playersready-somestack? state (lambda ()
+                                                                             (((game 'get-field) 'get-stack-zone) 'resolve-one!)))))
    
    ; Transition from beginning-untap
    ; We can only move on to the next phase if all cards of the active player are untapped
@@ -152,21 +168,12 @@
    
    (add-stack-resolvers! phase-second-main phase-end-end-of-turn)
    
-   (add-stack-resolvers! phase-end-end-of-turn phase-cleanup)
-   (phase-cleanup 'add-transition! (fsm-transition (lambda ()
-                                                     ((game 'get-players) 'all-true? (lambda (player)
-                                                                                       (<= (((player 'get-player-field) 'get-hand-zone) 'size) 7))))
-                                                   phase-beginning-untap))
+   (add-stack-resolvers! phase-end-end-of-turn phase-end-cleanup)
+   (phase-end-cleanup 'add-transition! (fsm-transition (lambda ()
+                                                         ((game 'get-players) 'all-true? (lambda (player)
+                                                                                           (<= (((player 'get-player-field) 'get-hand-zone) 'size) 7))))
+                                                       phase-beginning-untap))
    
-   (define super (fsm phase-beginning-untap))
-   
-   (define (get-current-type)
-     ((super 'get-current-state) 'get-type))
-   
-   (define (obj-phases-fsm msg . args)
-     (case msg
-       ((get-current-type) (apply get-current-type args))
-       (else (apply super msg args))))
    obj-phases-fsm)
  
  )
