@@ -8,7 +8,7 @@
          (magic fields)
  
  (define (player)
-   (define my-field (player-field))
+   (define my-field (player-field player))
    (define my-mana (manapool))
    (define my-view '())
    (define life 20)

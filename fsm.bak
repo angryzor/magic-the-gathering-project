@@ -1,0 +1,73 @@
+(library
+ (fsm)
+ 
+ 
+ (define (fsm-state entry-action exit-action size)
+  (define trans-list (position-list size eq?))
+  
+  ;=================================================
+  ; Method add-transition
+  ; Spec: ( fsm-transition -> { #<void> } )
+  ; Desc: adds a new transition to the state
+  ; Args: trans - the transition to be added
+  ;=================================================
+  (define (add-transition! trans)
+    (if (trans-list 'full?)
+        (error 'fsm-state.add-transition! "transition list is full. check your fsm-state size")
+        (trans-list 'add-after! trans)))
+  
+  ;=================================================
+  ; Method next-state
+  ; Spec: (  -> fsm-state U { #f } )
+  ; Desc: "check"'s all transitions and returns the first non-#f value returned.
+  ;       Returns #f if all of the transitions return #f.
+  ;       The FSM should stay in its current state in this case.
+  ;       NOTE1: transitions are checked in the order in which they were added
+  ;       NOTE2: when a state is returned, the FSM MUST transition to that state
+  ; Args: /
+  ;=================================================
+  (define (next-state)
+    (define (find-next-state pos)
+      (let* ((the-trans (trans-list 'value pos))
+             (trans-check (the-trans 'check)))
+        (cond (trans-check (the-trans 'act)
+                           trans-check)
+              ((trans-list 'has-next? pos) (find-next-state (trans-list 'next pos)))
+              (else #f))))
+    (if (trans-list 'empty?)
+        #f
+        (find-next-state (trans-list 'first-position))))
+  
+  ;=================================================
+  ; Method enter
+  ; Spec: (  -> sobj )
+  ; Desc: should be called when the fsm enters this state;
+  ;       executes the entry event
+  ; Args: /
+  ;=================================================
+  (define (enter)
+    (if (not (null? entry-action))
+        (entry-action)))
+  
+  ;=================================================
+  ; Method leave
+  ; Spec: (  -> sobj )
+  ; Desc: should be called when the fsm leaves this state;
+  ;       executes the exit event
+  ; Args: /
+  ;=================================================
+  (define (leave)
+    (if (not (null? exit-action))
+        (exit-action)))
+  
+  (define (fsm-state-object msg . args)
+    (let ((my-param (make-param args 'fsm-state-object)))
+      (case msg
+        ((add-transition!) (add-transition! (my-param 1)))
+        ((next-state) (next-state))
+        ((enter) (enter))
+        ((leave) (leave))
+        (else (error 'fsm-state-object "message \"~S\" unknown" msg)))))
+  
+  
+  fsm-state-object)

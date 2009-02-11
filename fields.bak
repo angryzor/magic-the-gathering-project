@@ -1,0 +1,7 @@
+#!r6rs
+
+(define (player-field player)
+  (define in-play (zone-in-play))
+  (define hand (zone-hand))
+  
+  (define (get-in-play-zone)

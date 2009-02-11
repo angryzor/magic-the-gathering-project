@@ -30,10 +30,6 @@
      #f) ; you can never play this card. tis abstract.
    (define (draw)
      #f)
-   (define (supports-type? type)
-     (eq? type card))
-   (define (get-type)
-     card)
    
    (define (obj-card msg . args)
      (case msg
@@ -44,8 +40,6 @@
        ((set-cost!) (apply set-cost! args))
        ((can-play?) (apply can-play? args))
        ((draw) (apply draw args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (assertion-violation 'obj-card "message not understood" msg))))
    obj-card)
 
@@ -66,11 +60,6 @@
    (define (turn-end)
      #f)
    
-   (define (supports-type? type)
-     (or (eq? type card-permanent) (super 'supports-type? type)))
-   (define (get-type)
-     card-permanent)
-   
    (define (can-play?)
      (eq? (cur-phase 'get-type) 'main-phase))
    
@@ -83,8 +72,6 @@
        ((phase-end) (apply phase-end args))
        ((turn-end) (apply turn-end args))
        ((can-play?) (apply can-play? args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-permanent)
  
@@ -97,17 +84,10 @@
    (define (cast)
      #f)
    
-   (define (supports-type? type)
-     (or (eq? type card-stackable) (super 'supports-type? type)))
-   (define (get-type)
-     card-stackable)
-   
    (define (obj-card-stackable msg . args)
      (case msg
        ((play) (apply play args))
        ((cast) (apply cast args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-stackable)
 
@@ -118,16 +98,9 @@
    (define (can-play?)
      (eq? (cur-phase 'get-type) 'main-phase))
    
-   (define (supports-type? type)
-     (or (eq? type card-sorcery) (super 'supports-type? type)))
-   (define (get-type)
-     card-sorcery)
-   
    (define (obj-card-sorcery msg . args)
      (case msg
        ((can-play?) (apply can-play? args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-sorcery)
  
@@ -138,36 +111,21 @@
    (define (can-play?)
      #t)
    
-   (define (supports-type? type)
-     (or (eq? type card-instant) (super 'supports-type? type)))
-   (define (get-type)
-     card-instant)
-   
    (define (obj-card-instant msg . args)
      (case msg
        ((can-play?) (apply can-play? args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-instant)
 
  ;Class: card-enchantment
- (define (card-permanent name color cost player)
-   (define super (card-enchantment name color cost player))
+ (define (card-enchantment name color cost player)
+   (define super (card-permanent name color cost player))
    
    (define (get-linked-creature)
      #f)
    
-   (define (supports-type? type)
-     (or (eq? type card-enchantment) (super 'supports-type? type)))
-   (define (get-type)
-     card-enchantment)
-
    (define (obj-card-enchantment msg . args)
-     (case msg
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
-       (else (apply super msg args))))
+     (apply super msg args))
    obj-card-enchantment)
  
  (define (card-with-actions name color cost player)
@@ -190,11 +148,6 @@
    (define (untap!)
      (set! tapped #f))
    
-   (define (supports-type? type)
-     (or (eq? type card-with-actions) (super 'supports-type? type)))
-   (define (get-type)
-     card-with-actions)
-
    (define (obj-card-with-actions msg . args)
      (case msg
        ((get-actions) (apply get-actions args))
@@ -204,8 +157,6 @@
        ((tapped?) (apply tapped? args))
        ((tap!) (apply tap! args))
        ((untap!) (apply untap! args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-with-actions)
 
@@ -224,8 +175,6 @@
        ((get-description) (apply get-description args))
        ((is-valid?) (apply is-valid? args))
        ((perform) (apply perform args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (assertion-violation 'obj-card-action "message not understood" msg))))
    obj-card-action)
 
@@ -246,16 +195,9 @@
    (define (perform-default-action)
      (tap-for-mana 'perform))
    
-   (define (supports-type? type)
-     (or (eq? type card-land) (super 'supports-type? type)))
-   (define (get-type)
-     card-land)
-
    (define (obj-card-land msg . args)
      (case msg
        ((perform-default-action) (apply perform-default-action args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    
    ; Adding actions
@@ -315,11 +257,6 @@
        (if pos
            (special-attribs 'delete! attrib))))
    
-   (define (supports-type? type)
-     (or (eq? type card-creature) (super 'supports-type? type)))
-   (define (get-type)
-     card-creature)
-
    (define (obj-card-creature msg . args)
      (case msg
        ((damage-player) (apply damage-player args))
@@ -336,23 +273,14 @@
        ((has-special-attribute?) (apply has-special-attribute? args))
        ((add-special-attribute!) (apply add-special-attribute! args))
        ((remove-special-attribute!) (apply remove-special-attribute! args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-creature)
  
  (define (card-artifact name color cost player)
    (define super (card-permanent name color cost player))
 
-   (define (supports-type? type)
-     (or (eq? type card-artifact) (super 'supports-type? type)))
-   (define (get-type)
-     card-artifact)
-
    (define (obj-card-artifact msg . args)
      (case msg
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-artifact)
  
