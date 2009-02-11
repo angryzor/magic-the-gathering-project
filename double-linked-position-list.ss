@@ -274,8 +274,19 @@
                  '()
                  (rec (first-position))))
            
-           (define (Implements? ClassDef)
-             (eq? ClassDef 'double-linked-position-list))
+           (define (all-true? pred)
+             (let ([predmap (map pred eq?)])
+               (predmap 'foldl
+                        (lambda (x y)
+                          (and x y))
+                        #t)))
+           
+           (define (all-false? pred)
+             (let ([predmap (map pred eq?)])
+               (not (predmap 'foldl 
+                             (lambda (x y)
+                               (or x y))
+                             #f))))
            
            (define (obj-d-l-position-list msg . args)
              (case msg
@@ -301,6 +312,8 @@
                ((print) (apply debug-print-complete args))
                ((duplicate) (apply duplicate args))
                ((to-scheme-list) (apply to-scheme-list args))
+               ((all-true?) (apply all-true? args))
+               ((all-false?) (apply all-false? args))
                (else (assertion-violation 'double-linked-position-list "message not understood" msg))))
 
            (if (not (null? lst))

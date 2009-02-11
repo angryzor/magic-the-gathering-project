@@ -51,7 +51,7 @@
                                                'ok)
                                              (lambda ()
                                                'ok)
-                                               'beginning-draw))
+                                             'beginning-draw))
    
    (define (main-phase) (phase-state (lambda ()
                                        'ok)
@@ -64,9 +64,9 @@
    
    ; Combat phases
    (define phase-combat-begin (phase-state (lambda ()
-                                               'ok)
+                                             'ok)
                                            (lambda ()
-                                               'ok)
+                                             'ok)
                                            'combat-begin))
    (define phase-combat-declare-attackers (phase-state (lambda ()
                                                          'ok)
@@ -105,15 +105,29 @@
                                           'end-cleanup))
    
    
+   ; Some recurring transition events
+   (define (immediate) 
+     #t)
+   (define (playersready?)
+     ((game 'get-players) 'all-true? (lambda (player)
+                                       (player 'ready?))))
+   
+   
    ; Transition from beginning-untap
    ; We can only move on to the next phase if all cards of the active player are untapped
-   (phase-beginning-untap 'add-transition! (fsm-transition (lambda ()
-                                                             (let* ([ap (game 'get-active-player)]
-                                                                    [ipzone ((ap 'get-player-field) 'get-in-play-zone)]
-                                                                    [tapmap (ipzone 'map (lambda (card)
-                                                                               (if (card 'supports-type? card-with-actions)
-                                                                                   (card 'tapped?)
-                                                                                   #f)))])
-                                                               (tapmap 'foldl (lambda (x y)
-                                                                                (or x y)))
+   (phase-beginning-untap      'add-transition! (fsm-transition (lambda ()
+                                                                  (let* ([ap (game 'get-active-player)]
+                                                                         [ipzone ((ap 'get-player-field) 'get-in-play-zone)])
+                                                                    (ipzone 'all-false? (lambda (card)
+                                                                                          (if (card 'supports-type? card-with-actions)
+                                                                                              (card 'tapped?)
+                                                                                              #f)))))
+                                                                phase-beginning-upkeep)) ; Move to the upkeep
+   (phase-beginning-upkeep     'add-transition! (fsm-transition playersready? phase-beginning-draw)) ; Do the upkeep and move to the draw phase when players declare ready.
+   (phase-beginning-draw       'add-transition! (fsm-transition (lambda () ; Wait till all players have drawn a card
+                                                                  ((game 'get-players) 'all-true? (lambda (player)
+                                                                                                    (player 'has-drawn?))))
+                                                                phase-first-main)) ; Move to main phase
    
+   (phase-first-main
+                         
