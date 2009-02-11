@@ -51,11 +51,11 @@
        (else (assertion-violation 'zone "message not understood" msg))))
    obj-zone)
  
- (define (zone-stack)
+ (define (zone-stacklike)
    (define super (zone))
    
    (define (push! card)
-     (super 'add-card! card))
+     (add-card! card))
    
    (define (top)
      (super 'get-at-index 0))
@@ -65,16 +65,40 @@
        (super 'delete-by-index! 0)
        card))
    
-   (define (obj-zone-stack msg . args)
+   (define (obj-zone-stacklike msg . args)
      (case msg
        ((push!) (apply push! args))
        ((top) (apply top args))
        ((pop!) (apply pop! args))
        (else (apply super args))))
+   obj-zone-stacklike)
+ 
+ (define (zone-stack)
+   (define super (zone-stacklike))
+   
+   (define (add-card! card)
+     (if (card 'supports-type? card-stackable)
+         (begin
+           (super 'add-card! card)
+           (card 'play))
+         (assertion-violation 'zone-stack.add-card! "trying to add non-stackable card")))
+   
+   (define (push! card)
+     (add-card! card))
+   
+   (define (resolve-one!)
+     (let ([card (pop!)])
+       (card 'cast)))
+   
+   (define (obj-zone-stack msg . args)
+     (case msg
+       ((add-card!) (apply add-card! args))
+       ((push!) (apply push! args))
+       (else (apply super args))))
    obj-zone-stack)
  
  (define (zone-library)
-   (define super (zone-stack))
+   (define super (zone-stacklike))
    
    (define (shuffle)
      #f)
@@ -90,7 +114,7 @@
    obj-zone-library)
  
  (define (zone-graveyard)
-   (define super (zone-stack))
+   (define super (zone-stacklike))
    
    (define (obj-zone-graveyard msg . args)
      (case msg
@@ -115,8 +139,16 @@
  (define (zone-in-play)
    (define super (zone))
    
+   (define (add-card! card)
+     (if (card 'supports-type? card-permanent)
+         (begin
+           (super 'add-card! card)
+           (card 'play))
+         (assertion-violation 'zone-in-play.add-card! "trying to add non-permanent card")))
+
    (define (obj-zone-in-play msg . args)
      (case msg
+       ((add-card!) (apply add-card! args))
        (else (apply super msg args))))
    obj-zone-in-play)
  

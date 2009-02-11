@@ -1,6 +1,7 @@
 #!r6rs
 
-(library (cards)
+(library 
+ (cards)
  (export card-sorcery
          card-instant
          card-enchantment
@@ -12,9 +13,10 @@
          (rnrs base (6))
          (magic double-linked-position-list))
  
-(define mana-unit 3)
-; Code
-; Class: card 
+ (define mana-unit 3)
+ (define (game) 'ok)
+ ; Code
+ ; Class: card 
  (define (card name color cost player)
    (define (get-name)
      name)
@@ -27,7 +29,7 @@
    (define (set-cost! new-cost)
      (set! cost new-cost))
    (define (can-play?)
-     #f) ; you can never play this card. tis abstract.
+     #f) ; you can never play this card.
    (define (draw)
      #f)
    (define (supports-type? type)
@@ -48,13 +50,13 @@
        ((get-type) (apply get-type args))
        (else (assertion-violation 'obj-card "message not understood" msg))))
    obj-card)
-
+ 
  ;Class: card-permanent
  (define (card-permanent name color cost player)
    (define super (card name color cost player))
    
    (define (play)
-     #f) ;can't play. tis also abstract
+     #f)
    (define (destroy)
      #f)
    (define (turn-begin)
@@ -72,7 +74,8 @@
      card-permanent)
    
    (define (can-play?)
-     (eq? (cur-phase 'get-type) 'main-phase))
+     (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
+     (eq? (game 'get-active-player) player))
    
    (define (obj-card-permanent msg . args)
      (case msg
@@ -110,13 +113,14 @@
        ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-stackable)
-
+ 
  ;Class: card-sorcery
  (define (card-sorcery name color cost player)
    (define super (card-stackable name color cost player))
    
    (define (can-play?)
-     (eq? (cur-phase 'get-type) 'main-phase))
+     (and (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
+          (eq? (game 'get-active-player) player)))
    
    (define (supports-type? type)
      (or (eq? type card-sorcery) (super 'supports-type? type)))
@@ -134,7 +138,7 @@
  ;Class: card-instant
  (define (card-instant name color cost player)
    (define super (card-stackable name color cost player))
-
+   
    (define (can-play?)
      #t)
    
@@ -150,10 +154,10 @@
        ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-instant)
-
+ 
  ;Class: card-enchantment
- (define (card-permanent name color cost player)
-   (define super (card-enchantment name color cost player))
+ (define (card-enchantment name color cost player)
+   (define super (card-permanent name color cost player))
    
    (define (get-linked-creature)
      #f)
@@ -162,7 +166,7 @@
      (or (eq? type card-enchantment) (super 'supports-type? type)))
    (define (get-type)
      card-enchantment)
-
+   
    (define (obj-card-enchantment msg . args)
      (case msg
        ((supports-type?) (apply supports-type? args))
@@ -194,7 +198,7 @@
      (or (eq? type card-with-actions) (super 'supports-type? type)))
    (define (get-type)
      card-with-actions)
-
+   
    (define (obj-card-with-actions msg . args)
      (case msg
        ((get-actions) (apply get-actions args))
@@ -208,7 +212,7 @@
        ((get-type) (apply get-type args))
        (else (apply super msg args))))
    obj-card-with-actions)
-
+ 
  ;Class: card-action
  (define (card-action description validity-check action)
    (define (get-description)
@@ -224,11 +228,9 @@
        ((get-description) (apply get-description args))
        ((is-valid?) (apply is-valid? args))
        ((perform) (apply perform args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
        (else (assertion-violation 'obj-card-action "message not understood" msg))))
    obj-card-action)
-
+ 
  ;Class: card-land
  (define (card-land name color cost player)
    (define super (card-with-actions name color cost player))
@@ -250,7 +252,7 @@
      (or (eq? type card-land) (super 'supports-type? type)))
    (define (get-type)
      card-land)
-
+   
    (define (obj-card-land msg . args)
      (case msg
        ((perform-default-action) (apply perform-default-action args))
@@ -263,14 +265,45 @@
    
    obj-card-land)
  
+ (define (card-virtual-blocked-combat-damage for-creature to-creature)
+   (define super (card-stackable (for-creature 'get-name)
+                                 (for-creature 'get-color)
+                                 (mana-list)
+                                 (for-creature 'get-player)))
+   
+   (define (cast)
+     (to-creature 'set-health! (- (to-creature 'get-health) (for-creature 'get-power))))
+   
+   (define (obj-card-virtual-blocked-combat-damage msg . args)
+     (case msg
+       ((cast) (apply cast args))
+       (else (apply super msg args))))
+   obj-card-virtual-blocked-combat-damage)
+ 
+ (define (card-virtual-direct-combat-damage for-creature to-player)
+   (define super (card-stackable (for-creature 'get-name)
+                                 (for-creature 'get-color)
+                                 (mana-list)
+                                 (for-creature 'get-player)))
+   
+   (define (cast)
+     (player 'set-life-counter! (- (player 'get-life-counter) power)))
+   
+   (define (obj-card-virtual-direct-combat-damage msg . args)
+     (case msg
+       ((cast) (apply cast args))
+       (else (apply super msg args))))
+   obj-card-virtual-direct-combat-damage)
+ 
+ 
  ;Class: card-creature
  (define (card-creature name color cost player power toughness)
    (define super (card-with-actions name color cost player))
    (define health toughness)
    (define special-attribs (position-list eq?))
-
+   
    (define (damage-player player)
-     (player 'set-life-counter! (- (player 'get-life-counter) power)))
+     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage)))
    
    
    (define (can-block? attacker)
@@ -282,13 +315,13 @@
          ((player 'get-player-field) 'search-and-destroy! attacker))
      (if (<= (get-health) 0)
          (((attacker 'get-player) 'get-player-field) 'search-and-destroy! obj-card-creature)))
-        
+   
    
    (define (turn-end)
      (set! health toughness)
      (super 'turn-end))
-     
-     
+   
+   
    (define (get-power)
      power)
    (define (set-power! val)
@@ -319,7 +352,7 @@
      (or (eq? type card-creature) (super 'supports-type? type)))
    (define (get-type)
      card-creature)
-
+   
    (define (obj-card-creature msg . args)
      (case msg
        ((damage-player) (apply damage-player args))
@@ -343,12 +376,12 @@
  
  (define (card-artifact name color cost player)
    (define super (card-permanent name color cost player))
-
+   
    (define (supports-type? type)
      (or (eq? type card-artifact) (super 'supports-type? type)))
    (define (get-type)
      card-artifact)
-
+   
    (define (obj-card-artifact msg . args)
      (case msg
        ((supports-type?) (apply supports-type? args))

@@ -4,7 +4,8 @@
  (phase)
  (export untap-phase)
  (import (rnrs base (6))
-         (magic fsm))
+         (magic fsm)
+         (magic cards))
  
  (define (phase-state entry-action exit-action type)
    (define (to-all-perms msg . args)
@@ -104,30 +105,68 @@
                                             'ok)
                                           'end-cleanup))
    
-   
    ; Some recurring transition events
    (define (immediate) 
      #t)
-   (define (playersready?)
-     ((game 'get-players) 'all-true? (lambda (player)
-                                       (player 'ready?))))
+   (define (playersready-nostack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (((game 'get-field) 'get-stack-zone) 'empty?)))
+   (define (playersready-somestack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (not (((game 'get-field) 'get-stack-zone) 'empty?))))
    
+   ; Add recurring transitions
+   (define (add-stack-resolvers! state end-state . trans-action)
+       (state 'add-transition! (apply fsm-transition playersready-nostack? end-state trans-action))
+       (state 'add-transition! (fsm-transition playersready-somestack? state (lambda ()
+                                                                                 (((game 'get-field) 'get-stack-zone) 'resolve-one!)))))
    
    ; Transition from beginning-untap
    ; We can only move on to the next phase if all cards of the active player are untapped
-   (phase-beginning-untap      'add-transition! (fsm-transition (lambda ()
-                                                                  (let* ([ap (game 'get-active-player)]
-                                                                         [ipzone ((ap 'get-player-field) 'get-in-play-zone)])
-                                                                    (ipzone 'all-false? (lambda (card)
-                                                                                          (if (card 'supports-type? card-with-actions)
-                                                                                              (card 'tapped?)
-                                                                                              #f)))))
-                                                                phase-beginning-upkeep)) ; Move to the upkeep
-   (phase-beginning-upkeep     'add-transition! (fsm-transition playersready? phase-beginning-draw)) ; Do the upkeep and move to the draw phase when players declare ready.
-   (phase-beginning-draw       'add-transition! (fsm-transition (lambda () ; Wait till all players have drawn a card
-                                                                  ((game 'get-players) 'all-true? (lambda (player)
-                                                                                                    (player 'has-drawn?))))
-                                                                phase-first-main)) ; Move to main phase
+   (phase-beginning-untap          'add-transition! (fsm-transition (lambda ()
+                                                                      (let* ([ap (game 'get-active-player)]
+                                                                             [ipzone ((ap 'get-player-field) 'get-in-play-zone)])
+                                                                        (ipzone 'all-false? (lambda (card)
+                                                                                              (if (card 'supports-type? card-with-actions)
+                                                                                                  (card 'tapped?)
+                                                                                                  #f)))))
+                                                                    phase-beginning-upkeep)) ; Move to the upkeep
+   ; Do the upkeep and move to the draw phase when stack is resolved.
+   (add-stack-resolvers! phase-beginning-upkeep phase-beginning-draw)
+   ; Move on when all players have drawn a card
+   (phase-beginning-draw           'add-transition! (fsm-transition (lambda () ; Wait till all players have drawn a card
+                                                                      ((game 'get-players) 'all-true? (lambda (player)
+                                                                                                        (player 'has-drawn?))))
+                                                                    phase-first-main)) ; Move to main phase
    
-   (phase-first-main
-                         
+   ; Wait for stack resolve.
+   (add-stack-resolvers! phase-first-main phase-combat-begin)
+   
+   (add-stack-resolvers! phase-combat-begin phase-combat-declare-attackers)
+   (add-stack-resolvers! phase-combat-declare-attackers phase-combat-declare-blockers)
+   (add-stack-resolvers! phase-combat-declare-blockers phase-combat-damage)
+   (add-stack-resolvers! phase-combat-damage phase-combat-end)
+   (add-stack-resolvers! phase-combat-end phase-second-main)
+   
+   (add-stack-resolvers! phase-second-main phase-end-end-of-turn)
+   
+   (add-stack-resolvers! phase-end-end-of-turn phase-cleanup)
+   (phase-cleanup 'add-transition! (fsm-transition (lambda ()
+                                                     ((game 'get-players) 'all-true? (lambda (player)
+                                                                                       (<= (((player 'get-player-field) 'get-hand-zone) 'size) 7))))
+                                                   phase-beginning-untap))
+   
+   (define super (fsm phase-beginning-untap))
+   
+   (define (get-current-type)
+     ((super 'get-current-state) 'get-type))
+   
+   (define (obj-phases-fsm msg . args)
+     (case msg
+       ((get-current-type) (apply get-current-type args))
+       (else (apply super msg args))))
+   obj-phases-fsm)
+ 
+ )

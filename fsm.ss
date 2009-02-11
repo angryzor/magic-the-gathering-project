@@ -1,3 +1,5 @@
+#!r6rs
+
 (library
  (fsm)
  (export fsm
@@ -125,7 +127,7 @@
  ; Class fsm
  ; Constructor spec: ( fsm-state -> fsm )
  ; Desc: FSM class; represents a Finite State Machine
- ; Args: state - the starting that the fsm is in
+ ; Args: state - the starting state that the fsm is in
  ;***************************************************
  (define (fsm state)
    
