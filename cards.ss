@@ -147,6 +147,9 @@
    (define (get-type)
      card-instant)
    
+   (define (cast)
+     (
+   
    (define (obj-card-instant msg . args)
      (case msg
        ((can-play?) (apply can-play? args))
