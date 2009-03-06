@@ -40,7 +40,7 @@
    (define stack (zone-stack))
    
    (define (add-player-field! field)
-     (pfields 'add! field))
+     (pfields 'add-after! field))
    
    (define (get-player-fields)
      pfields)

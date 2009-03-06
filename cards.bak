@@ -1,7 +1,12 @@
 #!r6rs
 
-(library (cards)
- (export card-sorcery
+(library 
+ (cards)
+ (export card
+         card-stackable
+         card-permanent
+         card-with-actions
+         card-sorcery
          card-instant
          card-enchantment
          card-action
@@ -10,12 +15,21 @@
          card-artifact)
  (import (rnrs)
          (rnrs base (6))
-         (magic double-linked-position-list))
+         (magic double-linked-position-list)
+;         (magic game)
+         (magic mana))
  
-(define mana-unit 3)
-; Code
-; Class: card 
- (define (card name color cost player)
+ (define (gui) 'ok)
+ 
+ 
+ (define (extract-this obj this-a)
+   (if (null? this-a)
+       obj
+       (car this-a)))
+ 
+ ; Code
+ ; Class: card 
+ (define (card name color cost player . this-a)
    (define (get-name)
      name)
    (define (get-color)
@@ -27,9 +41,13 @@
    (define (set-cost! new-cost)
      (set! cost new-cost))
    (define (can-play?)
-     #f) ; you can never play this card. tis abstract.
+     #f) ; you can never play this card.
    (define (draw)
      #f)
+   (define (supports-type? type)
+     (eq? type card))
+   (define (get-type)
+     card)
    
    (define (obj-card msg . args)
      (case msg
@@ -40,15 +58,19 @@
        ((set-cost!) (apply set-cost! args))
        ((can-play?) (apply can-play? args))
        ((draw) (apply draw args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (assertion-violation 'obj-card "message not understood" msg))))
+   
+   (define this (extract-this obj-card this-a))
+   
    obj-card)
-
+ 
  ;Class: card-permanent
- (define (card-permanent name color cost player)
-   (define super (card name color cost player))
+ (define (card-permanent name color cost player . this-a)
    
    (define (play)
-     #f) ;can't play. tis also abstract
+     #f)
    (define (destroy)
      #f)
    (define (turn-begin)
@@ -60,8 +82,14 @@
    (define (turn-end)
      #f)
    
+   (define (supports-type? type)
+     (or (eq? type card-permanent) (super 'supports-type? type)))
+   (define (get-type)
+     card-permanent)
+   
    (define (can-play?)
-     (eq? (cur-phase 'get-type) 'main-phase))
+     (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
+     (eq? (game 'get-active-player) player))
    
    (define (obj-card-permanent msg . args)
      (case msg
@@ -72,64 +100,113 @@
        ((phase-end) (apply phase-end args))
        ((turn-end) (apply turn-end args))
        ((can-play?) (apply can-play? args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-permanent this-a))
+   (define super (card name color cost player this))
+
    obj-card-permanent)
  
  ;Class: card-stackable
- (define (card-stackable name color cost player)
-   (define super (card name color cost player))
+ (define (card-stackable name color cost player . this-a)
    
    (define (play)
      #f)
    (define (cast)
      #f)
    
+   (define (supports-type? type)
+     (or (eq? type card-stackable) (super 'supports-type? type)))
+   (define (get-type)
+     card-stackable)
+   
    (define (obj-card-stackable msg . args)
      (case msg
        ((play) (apply play args))
        ((cast) (apply cast args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-stackable this-a))
+   (define super (card name color cost player this))
+   
    obj-card-stackable)
-
+ 
  ;Class: card-sorcery
- (define (card-sorcery name color cost player)
-   (define super (card-stackable name color cost player))
+ (define (card-sorcery name color cost player . this-a)
    
    (define (can-play?)
-     (eq? (cur-phase 'get-type) 'main-phase))
+     (and (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
+          (eq? (game 'get-active-player) player)))
+   
+   (define (supports-type? type)
+     (or (eq? type card-sorcery) (super 'supports-type? type)))
+   (define (get-type)
+     card-sorcery)
    
    (define (obj-card-sorcery msg . args)
      (case msg
        ((can-play?) (apply can-play? args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-sorcery this-a))
+   (define super (card-stackable name color cost player this))
+   
    obj-card-sorcery)
  
  ;Class: card-instant
- (define (card-instant name color cost player)
-   (define super (card-stackable name color cost player))
-
+ (define (card-instant name color cost player . this-a)
+   
    (define (can-play?)
      #t)
+   
+   (define (supports-type? type)
+     (or (eq? type card-instant) (super 'supports-type? type)))
+   (define (get-type)
+     card-instant)
+   
+;   (define (cast)
+ ;    (
    
    (define (obj-card-instant msg . args)
      (case msg
        ((can-play?) (apply can-play? args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
-   obj-card-instant)
 
+   (define this (extract-this obj-card-instant this-a))
+   (define super (card-stackable name color cost player this))
+
+   obj-card-instant)
+ 
  ;Class: card-enchantment
- (define (card-enchantment name color cost player)
-   (define super (card-permanent name color cost player))
-   
+ (define (card-enchantment name color cost player . this-a)
    (define (get-linked-creature)
      #f)
    
+   (define (supports-type? type)
+     (or (eq? type card-enchantment) (super 'supports-type? type)))
+   (define (get-type)
+     card-enchantment)
+   
    (define (obj-card-enchantment msg . args)
-     (apply super msg args))
+     (case msg
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
+       (else (apply super msg args))))
+
+   (define this (extract-this obj-card-enchantment this-a))
+   (define super (card-permanent name color cost player this))
+   
    obj-card-enchantment)
  
- (define (card-with-actions name color cost player)
-   (define super (card-permanent name color cost player))
+ (define (card-with-actions name color cost player . this-a)
    (define actions (position-list eq?))
    (define tapped #f)
    
@@ -148,6 +225,11 @@
    (define (untap!)
      (set! tapped #f))
    
+   (define (supports-type? type)
+     (or (eq? type card-with-actions) (super 'supports-type? type)))
+   (define (get-type)
+     card-with-actions)
+   
    (define (obj-card-with-actions msg . args)
      (case msg
        ((get-actions) (apply get-actions args))
@@ -157,9 +239,15 @@
        ((tapped?) (apply tapped? args))
        ((tap!) (apply tap! args))
        ((untap!) (apply untap! args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-with-actions this-a))
+   (define super (card-permanent name color cost player))
+   
    obj-card-with-actions)
-
+ 
  ;Class: card-action
  (define (card-action description validity-check action)
    (define (get-description)
@@ -177,11 +265,9 @@
        ((perform) (apply perform args))
        (else (assertion-violation 'obj-card-action "message not understood" msg))))
    obj-card-action)
-
+ 
  ;Class: card-land
- (define (card-land name color cost player)
-   (define super (card-with-actions name color cost player))
-   
+ (define (card-land name color cost player . this-a)
    ; Actions:
    ; This card can be tapped for mana. This is the default action.
    (define tap-for-mana (card-action "Tap: +1 mana"
@@ -195,42 +281,105 @@
    (define (perform-default-action)
      (tap-for-mana 'perform))
    
+   (define (supports-type? type)
+     (or (eq? type card-land) (super 'supports-type? type)))
+   (define (get-type)
+     card-land)
+   
    (define (obj-card-land msg . args)
      (case msg
        ((perform-default-action) (apply perform-default-action args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-land this-a))
+   (define super (card-with-actions name color cost player))
    
    ; Adding actions
    (super 'add-action! tap-for-mana)
    
    obj-card-land)
  
+ (define (card-virtual-blocked-combat-damage for-creature to-creature . this-a)
+   (define (cast)
+     (to-creature 'set-health! (- (to-creature 'get-health) (for-creature 'get-power))))
+   
+   (define (obj-card-virtual-blocked-combat-damage msg . args)
+     (case msg
+       ((cast) (apply cast args))
+       (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-virtual-blocked-combat-damage this-a))
+   (define super (card-stackable (for-creature 'get-name)
+                                 (for-creature 'get-color)
+                                 (mana-list)
+                                 (for-creature 'get-player)))
+   
+   obj-card-virtual-blocked-combat-damage)
+ 
+ (define (card-virtual-direct-combat-damage for-creature to-player . this-a)
+   (define (cast)
+     (to-player 'set-life-counter! (- (to-player 'get-life-counter) (for-creature 'get-power))))
+   
+   (define (obj-card-virtual-direct-combat-damage msg . args)
+     (case msg
+       ((cast) (apply cast args))
+       (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-virtual-direct-combat-damage this-a))
+   (define super (card-stackable (for-creature 'get-name)
+                                 (for-creature 'get-color)
+                                 (mana-list)
+                                 (for-creature 'get-player)))
+   
+   obj-card-virtual-direct-combat-damage)
+ 
+ 
  ;Class: card-creature
- (define (card-creature name color cost player power toughness)
-   (define super (card-with-actions name color cost player))
+ (define (card-creature name color cost player power toughness . this-a)
    (define health toughness)
    (define special-attribs (position-list eq?))
-
+   
+   (define blocker #f)
+   (define attacks #f)
+   
+   (define (is-blocked! by)
+     (if attacks
+         (set! blocker by)
+         (assertion-violation 'card-creature.is-blocked! "this creature doesn't even attack!" this by)))
+   
+   (define (attacks!)
+     (set! attacks #t))
+   
+   (define (deal-damage)
+     (if attacks
+         (if blocker
+             (damage-creature)
+             (damage-player (let* ([players (game 'get-players)]
+                                   [pos (players 'first-position)]
+                                   [anopponentpos (players 'next pos)]) ; need to do this better (have choice)
+                              (players 'value anopponentpos))))))
+   
    (define (damage-player player)
-     (player 'set-life-counter! (- (player 'get-life-counter) power)))
+     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this player)))
    
-   
+   (define (damage-creature)
+     (set! health toughness)
+     (blocker 'set-health! (blocker 'get-toughness))
+     (let ([stack ((game 'get-field) 'get-stack-zone)])
+       (stack 'push! (card-virtual-blocked-combat-damage this blocker))
+       (stack 'push! (card-virtual-blocked-combat-damage blocker this))))
+
    (define (can-block? attacker)
-     #f)
-   (define (block attacker)
-     (attacker 'set-health! (- (attacker 'get-health) (get-power)))
-     (set-health! (- (get-health) (attacker 'get-power)))
-     (if (<= (attacker 'get-health) 0)
-         ((player 'get-player-field) 'search-and-destroy! attacker))
-     (if (<= (get-health) 0)
-         (((attacker 'get-player) 'get-player-field) 'search-and-destroy! obj-card-creature)))
-        
+     #t) ; special-attribs should be calculated here
    
    (define (turn-end)
-     (set! health toughness)
+     (set! blocker #f)
+     (set! attacks #f)
      (super 'turn-end))
-     
-     
+   
+   
    (define (get-power)
      power)
    (define (set-power! val)
@@ -257,11 +406,15 @@
        (if pos
            (special-attribs 'delete! attrib))))
    
+   (define (supports-type? type)
+     (or (eq? type card-creature) (super 'supports-type? type)))
+   (define (get-type)
+     card-creature)
+   
    (define (obj-card-creature msg . args)
      (case msg
-       ((damage-player) (apply damage-player args))
+       ((deal-damage) (apply deal-damage args))
        ((can-block?) (apply can-block? args))
-       ((block attacker) (apply block args))
        ((turn-end) (apply turn-end args))
        ((get-power) (apply get-power args))
        ((set-power!) (apply set-power! args))
@@ -269,19 +422,49 @@
        ((set-toughness!) (apply set-toughness! args))
        ((get-health) (apply get-health args))
        ((set-health!) (apply set-health! args))
+       ((is-blocked!) (apply is-blocked! args))
+       ((attacks!) (apply attacks! args))
        ((get-special-attributes) (apply get-special-attributes args))
        ((has-special-attribute?) (apply has-special-attribute? args))
        ((add-special-attribute!) (apply add-special-attribute! args))
        ((remove-special-attribute!) (apply remove-special-attribute! args))
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-creature this-a))
+   (define super (card-with-actions name color cost player))
+   
+   (super 'add-action! (card-action "Attack"
+                                    (lambda ()
+                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
+                                           (eq? player (game 'get-active-player))))
+                                    (lambda ()
+                                      (attacks!))))
+   (super 'add-action! (card-action "Block"
+                                    (lambda ()
+                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
+                                           (not (eq? player (game 'get-active-player)))))
+                                    (lambda ()
+                                      ((gui 'wait-for-target-card-selection) 'is-blocked! this))))
+   
    obj-card-creature)
  
- (define (card-artifact name color cost player)
-   (define super (card-permanent name color cost player))
-
+ (define (card-artifact name color cost player . this-a)
+   (define (supports-type? type)
+     (or (eq? type card-artifact) (super 'supports-type? type)))
+   (define (get-type)
+     card-artifact)
+   
    (define (obj-card-artifact msg . args)
      (case msg
+       ((supports-type?) (apply supports-type? args))
+       ((get-type) (apply get-type args))
        (else (apply super msg args))))
+   
+   (define this (extract-this obj-card-artifact this-a))
+   (define super (card-permanent name color cost player))
+   
    obj-card-artifact)
  
  )

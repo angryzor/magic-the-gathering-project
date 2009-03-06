@@ -87,7 +87,7 @@
                                                                                                         (if (card 'supports-type? 'card-creature)
                                                                                                             (card 'deal-damage))))))
                                             (lambda ()
-                                              )
+                                              'ok)
                                             'combat-damage))
    (define phase-combat-end (phase-state (lambda ()
                                            'ok)

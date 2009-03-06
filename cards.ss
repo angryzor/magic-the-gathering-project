@@ -16,7 +16,6 @@
  (import (rnrs)
          (rnrs base (6))
          (magic double-linked-position-list)
-         (magic game)
          (magic mana))
  
  (define (gui) 'ok)
@@ -29,13 +28,15 @@
  
  ; Code
  ; Class: card 
- (define (card name color cost player . this-a)
+ (define (card name color cost game player . this-a)
    (define (get-name)
      name)
    (define (get-color)
      color)
    (define (get-cost)
      cost)
+   (define (get-game)
+     game)
    (define (get-player)
      player)
    (define (set-cost! new-cost)
@@ -54,6 +55,7 @@
        ((get-name) (apply get-name args))
        ((get-color) (apply get-color args))
        ((get-cost) (apply get-cost args))
+       ((get-game) (apply get-game args))
        ((get-player) (apply get-player args))
        ((set-cost!) (apply set-cost! args))
        ((can-play?) (apply can-play? args))
@@ -67,7 +69,7 @@
    obj-card)
  
  ;Class: card-permanent
- (define (card-permanent name color cost player . this-a)
+ (define (card-permanent name color cost game player . this-a)
    
    (define (play)
      #f)
@@ -110,7 +112,7 @@
    obj-card-permanent)
  
  ;Class: card-stackable
- (define (card-stackable name color cost player . this-a)
+ (define (card-stackable name color cost game player . this-a)
    
    (define (play)
      #f)
@@ -136,7 +138,7 @@
    obj-card-stackable)
  
  ;Class: card-sorcery
- (define (card-sorcery name color cost player . this-a)
+ (define (card-sorcery name color cost game player . this-a)
    
    (define (can-play?)
      (and (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
@@ -160,7 +162,7 @@
    obj-card-sorcery)
  
  ;Class: card-instant
- (define (card-instant name color cost player . this-a)
+ (define (card-instant name color cost game player . this-a)
    
    (define (can-play?)
      #t)
@@ -186,7 +188,7 @@
    obj-card-instant)
  
  ;Class: card-enchantment
- (define (card-enchantment name color cost player . this-a)
+ (define (card-enchantment name color cost game player . this-a)
    (define (get-linked-creature)
      #f)
    
@@ -206,7 +208,7 @@
    
    obj-card-enchantment)
  
- (define (card-with-actions name color cost player . this-a)
+ (define (card-with-actions name color cost game player . this-a)
    (define actions (position-list eq?))
    (define tapped #f)
    
@@ -267,7 +269,7 @@
    obj-card-action)
  
  ;Class: card-land
- (define (card-land name color cost player . this-a)
+ (define (card-land name color cost game player . this-a)
    ; Actions:
    ; This card can be tapped for mana. This is the default action.
    (define tap-for-mana (card-action "Tap: +1 mana"
@@ -314,6 +316,7 @@
    (define super (card-stackable (for-creature 'get-name)
                                  (for-creature 'get-color)
                                  (mana-list)
+                                 (for-creature 'get-game)
                                  (for-creature 'get-player)))
    
    obj-card-virtual-blocked-combat-damage)
@@ -331,13 +334,14 @@
    (define super (card-stackable (for-creature 'get-name)
                                  (for-creature 'get-color)
                                  (mana-list)
+                                 (for-creature 'get-game)
                                  (for-creature 'get-player)))
    
    obj-card-virtual-direct-combat-damage)
  
  
  ;Class: card-creature
- (define (card-creature name color cost player power toughness . this-a)
+ (define (card-creature name color cost game player power toughness . this-a)
    (define health toughness)
    (define special-attribs (position-list eq?))
    
@@ -450,7 +454,8 @@
    
    obj-card-creature)
  
- (define (card-artifact name color cost player . this-a)
+ ; Card-artifact
+ (define (card-artifact name color cost game player . this-a)
    (define (supports-type? type)
      (or (eq? type card-artifact) (super 'supports-type? type)))
    (define (get-type)
