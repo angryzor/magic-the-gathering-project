@@ -7,16 +7,23 @@
          (magic fields)
          (magic double-linked-position-list)
          (magic phase)
-         (magic player))
+         (magic player)
+         (magic gui-view))
  
  (define (game num-players)
    
    (define (construct)
-     (define (iter n)
-       (players 'add-after! (player field))
-       (if (> n 0)
-           (iter (- n 1))))
-     (iter num-players))
+     (begin
+       (define (iter n)
+         (if (> n 0)
+             (begin
+               (players 'add-after! (player field))
+               (iter (- n 1)))))
+       (iter num-players))
+     
+     (begin
+       (players 'for-each (lambda (player)
+                            (player-guis 'add-after! (gui-view player obj-game)))))     )
    
    (define (get-field)
      field)
@@ -24,10 +31,13 @@
    (define (get-players)
      players)
    
+   (define (get-num-players)
+     num-players)
+   
    (define (get-active-player)
      (players 'value (players 'first-position)))
    
-   (define (next-turn)
+   (define (next-turn!)
      (let* ([pos (players 'first-position)]
             [p (players 'value pos)])
        (players 'delete! pos)
@@ -37,10 +47,13 @@
      (case msg
        ((get-field) (apply get-field args))
        ((get-players) (apply get-players args))
+       ((get-num-players) (apply get-num-players args))
        ((get-active-player) (apply get-active-player args))
+       ((next-turn!) (apply next-turn! args))
        (else (assertion-violation 'game "message not understood" msg))))
    (define field (main-field))
    (define players (position-list eq?))
+   (define player-guis (position-list eq?))
    (define phases (phases-fsm obj-game))
    
    (construct)
