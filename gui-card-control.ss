@@ -2,6 +2,7 @@
 
 (provide gui-card-control%
          gui-card-with-actions-control%)
+(require (lib "card-dimensions.ss" "magic"))
 
 (define gui-card-control% 
   (class canvas%
@@ -10,8 +11,10 @@
     
     (define pic (make-object bitmap% (card 'get-picture)))
     
-    (super-new [min-width 100]
-               [min-height 142]
+    (super-new [min-width CARD-WIDTH]
+               [min-height CARD-HEIGHT]
+               [stretchable-width #f]
+               [stretchable-height #f]
                [paint-callback (lambda (inst dc)
                                  (send dc draw-bitmap pic 0 0)
                                  (paint-callback))])))

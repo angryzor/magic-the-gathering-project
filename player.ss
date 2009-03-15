@@ -8,7 +8,7 @@
          (magic mana)
          (magic fields))
  
- (define (player field)
+ (define (player field name)
    (define my-field (player-field player))
    (define my-mana (manapool))
    (define my-view '())
@@ -29,12 +29,16 @@
    (define (get-manapool)
      my-mana)
    
+   (define (get-name)
+     name)
+   
    (define (obj-player msg . args)
      (case msg
        ((get-life-counter) (apply get-life-counter args))
        ((set-life-counter!) (apply set-life-counter! args))
        ((check-dead) (apply check-dead args))
        ((get-view) (apply get-view args))
+       ((get-name) (apply get-name args))
        (else (assertion-violation 'player "message not understood" msg))))
    
    (field 'add-player-field! my-field)

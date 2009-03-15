@@ -2,28 +2,33 @@
 
 (provide gui-view)
 (require (lib "gui-card-control.ss" "magic"))
+(require (lib "null-card.ss" "magic"))
+(require (lib "card-dimensions.ss" "magic"))
 
 (define (gui-view player game)
-  (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- ")])); (player 'get-name))]))
+  (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (prepare-layout)
-    (new horizontal-pane% [parent my-main-frame])
+    (new horizontal-pane% [parent my-main-frame]
+                          [min-height CARD-HEIGHT])
     (let ([players (game 'get-players)])
       (players 'for-each (lambda (player)
                            (let ([div (new vertical-pane% [parent my-main-frame]
-                                                          [min-width 800])])
+                                                          [min-width (* CARD-WIDTH 10)])])
                              (new horizontal-pane% [parent div]
-                                                   [min-height 142])
+                                                   [min-height CARD-HEIGHT])
                              (let ([handlevel (new horizontal-pane% [parent div]
-                                                                    [min-height 142])])
+                                                                    [min-height CARD-HEIGHT])])
                                (new horizontal-pane% [parent handlevel]
                                                      [stretchable-width #t])
-                         ;      (new gui-card-control% [parent handlevel])
-                          ;     (new gui-card-control% [parent handlevel])
+                               (new gui-card-control% [parent handlevel]
+                                                      [card (null-card game player)])
+                               (new gui-card-control% [parent handlevel]
+                                                      [card (null-card game player)])
                                ))))))
-                             
+                           
   
 
   ; Menu bar =========================================================================================

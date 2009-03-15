@@ -10,20 +10,16 @@
          (magic player)
          (magic gui-view))
  
- (define (game num-players)
+ (define (game names)
+   (define num-players (length names))
    
    (define (construct)
-     (begin
-       (define (iter n)
-         (if (> n 0)
-             (begin
-               (players 'add-after! (player field))
-               (iter (- n 1)))))
-       (iter num-players))
+     (for-each (lambda (name)
+                 (players 'add-after! (player field name)))
+               names)
      
-     (begin
-       (players 'for-each (lambda (player)
-                            (player-guis 'add-after! (gui-view player obj-game)))))     )
+     (players 'for-each (lambda (player)
+                          (player-guis 'add-after! (gui-view player obj-game)))))
    
    (define (get-field)
      field)
