@@ -34,7 +34,7 @@
   ; Menu bar =========================================================================================
   (define my-menu-bar (new menu-bar% [parent my-main-frame]))
   (define my-menu-game (new menu% [parent my-menu-bar]
-                                  [label "Game"]))
+                                  [label "&Game"]))
   (define my-menu-item-exit (new menu-item% [parent my-menu-game]
                                             [label "&Exit"]
                                             [callback (lambda (i e)
@@ -43,6 +43,8 @@
   
   
   ; Interface -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+  
+  ; This definitely needs cleaning up. However, this is scheduled for the last milestone.
   (define (update)
     'ok)
   

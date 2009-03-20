@@ -13,6 +13,7 @@
    (define my-mana (manapool))
    (define my-view '())
    (define life 20)
+   (define gui '())
    
    (define (get-life-counter)
      life)
@@ -32,6 +33,12 @@
    (define (get-name)
      name)
    
+   (define (get-gui)
+     gui)
+   
+   (define (set-gui! a-gui)
+     (set! gui a-gui))
+   
    (define (obj-player msg . args)
      (case msg
        ((get-life-counter) (apply get-life-counter args))
@@ -39,6 +46,8 @@
        ((check-dead) (apply check-dead args))
        ((get-view) (apply get-view args))
        ((get-name) (apply get-name args))
+       ((get-gui) (apply get-gui args)) 
+       ((set-gui!) (apply set-gui! args))
        (else (assertion-violation 'player "message not understood" msg))))
    
    (field 'add-player-field! my-field)

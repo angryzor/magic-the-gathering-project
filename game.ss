@@ -19,7 +19,7 @@
                names)
      
      (players 'for-each (lambda (player)
-                          (player-guis 'add-after! (gui-view player obj-game)))))
+                          (player 'set-gui! (gui-view player obj-game)))))
    
    (define (get-field)
      field)
@@ -49,7 +49,6 @@
        (else (assertion-violation 'game "message not understood" msg))))
    (define field (main-field))
    (define players (position-list eq?))
-   (define player-guis (position-list eq?))
    (define phases (phases-fsm obj-game))
    
    (construct)
