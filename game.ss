@@ -8,7 +8,8 @@
          (magic double-linked-position-list)
          (magic phase)
          (magic player)
-         (magic gui-view))
+         (magic gui-view)
+         (magic null-card))
  
  (define (game names)
    (define num-players (length names))
@@ -53,8 +54,18 @@
    
    (construct)
    
-   obj-game))
+   obj-game)
  
  
-   
+(define a (game '("Ruben" "Sander")))
+(define b (a 'get-players))
+(define c (b 'value (b 'first-position)))
+(define d (c 'get-field))
+(define e (d 'get-hand-zone))
+(e 'add-card! (null-card a c))
+((c 'get-gui) 'update)
+
+)
+ 
+ 
    

@@ -1,0 +1,52 @@
+#!r6rs
+
+(library
+ (export player-view)
+ (import (rnrs base (6))
+         (magic fields)
+         (magic null-card)
+         (magic zones))
+ 
+ 
+ (define (player-view game orig-field player)
+   (define (player-view-field)
+     (define (player-view-player-field orig-pfield)
+       (define (add-n-nulls zone n)
+         (if (> n 0)
+             (begin
+               (zone 'add-after! (null-card game (orig-pfield 'get-player)))
+               (add-n-nulls zone (- n 1)))))
+       
+       (define (get-in-play-zone)
+         (let ([new-zone (zone-in-play)])
+           (add-n-nulls new-zone ((orig-pfield 'get-in-play-zone) 'size))
+           new-zone))
+       
+       (define (get-hand-zone)
+         hand)
+       
+       (define (get-library-zone)
+         library)
+       
+       (define (get-graveyard-zone)
+         graveyard)
+       
+       (define (obj-player-field msg . args)
+         (case msg
+           ((get-in-play-zone) (apply get-in-play-zone args))
+           ((get-hand-zone) (apply get-hand-zone args))
+           ((get-library-zone) (apply get-library-zone args))
+           ((get-graveyard-zone) (apply get-graveyard-zone args))
+           (else (assertion-violation 'player-field "message not understood" msg))))
+       obj-player-field)
+     
+     (define (get-player-fields)
+       (let* ([pfields (super 'get-player-fields)]
+              [new-pfields (pfields 'for-each (lambda (pfield)
+                                                (if (eq? (player 'get-field) pfield) ; if this is the field that belongs to this player
+                                                    pfield
+                                                    (begin
+                                                      (
+                                  
+   (define (get-transformed-field)
+     (transform-field

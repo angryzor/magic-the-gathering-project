@@ -27,7 +27,7 @@
      (case msg
        ((add-card!) (apply add-card! args))
        ((delete-card!) (apply delete-card! args))
-       (else (assertion-violation 'zone "message not understood" msg))))
+       (else (apply super msg args))))
    obj-zone)
  
  (define (zone-stacklike)

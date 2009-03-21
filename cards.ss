@@ -5,7 +5,7 @@
  (export card
          card-stackable
          card-permanent
-         card-with-actions
+         card-tappable
          card-sorcery
          card-instant
          card-enchantment
@@ -29,6 +29,8 @@
  ; Code
  ; Class: card 
  (define (card name color cost game player picture . this-a)
+   (define actions (position-list eq?))
+   
    (define (get-name)
      name)
    (define (get-color)
@@ -51,6 +53,14 @@
      card)
    (define (get-picture)
      picture)
+   (define (get-actions)
+     actions)
+   (define (add-action! action)
+     (actions 'add-after! action))
+   (define (remove-action! action)
+     (actions 'delete! action))
+   (define (perform-default-action)
+     #f)
    
    (define (obj-card msg . args)
      (case msg
@@ -65,12 +75,33 @@
        ((supports-type?) (apply supports-type? args))
        ((get-type) (apply get-type args))
        ((get-picture) (apply get-picture args))
+       ((get-actions) (apply get-actions args))
+       ((add-action!) (apply add-action! args))
+       ((remove-action!) (apply remove-action! args))
+       ((perform-default-action) (apply perform-default-action args))
        (else (assertion-violation 'obj-card "message not understood" msg))))
    
    (define this (extract-this obj-card this-a))
    
    obj-card)
- 
+               
+ ;Class: card-action
+ (define (card-action description validity-check action)
+   (define (get-description)
+     description)
+   (define (is-valid?)
+     (validity-check))
+   (define (perform)
+     (if (validity-check)
+         (action)))
+   
+   (define (obj-card-action msg . args)
+     (case msg
+       ((get-description) (apply get-description args))
+       ((is-valid?) (apply is-valid? args))
+       ((perform) (apply perform args))
+       (else (assertion-violation 'obj-card-action "message not understood" msg))))
+   obj-card-action) 
  ;Class: card-permanent
  (define (card-permanent name color cost game player picture . this-a)
    
@@ -211,18 +242,9 @@
    
    obj-card-enchantment)
  
- (define (card-with-actions name color cost game player picture . this-a)
-   (define actions (position-list eq?))
+ (define (card-tappable name color cost game player picture . this-a)
    (define tapped #f)
    
-   (define (get-actions)
-     actions)
-   (define (add-action! action)
-     (actions 'add-after! action))
-   (define (remove-action! action)
-     (actions 'delete! action))
-   (define (perform-default-action)
-     #f)
    (define (tapped?)
      tapped)
    (define (tap!)
@@ -231,16 +253,12 @@
      (set! tapped #f))
    
    (define (supports-type? type)
-     (or (eq? type card-with-actions) (super 'supports-type? type)))
+     (or (eq? type card-tappable) (super 'supports-type? type)))
    (define (get-type)
-     card-with-actions)
+     card-tappable)
    
-   (define (obj-card-with-actions msg . args)
+   (define (obj-card-tappable msg . args)
      (case msg
-       ((get-actions) (apply get-actions args))
-       ((add-action!) (apply add-action! args))
-       ((remove-action!) (apply remove-action! args))
-       ((perform-default-action) (apply perform-default-action args))
        ((tapped?) (apply tapped? args))
        ((tap!) (apply tap! args))
        ((untap!) (apply untap! args))
@@ -248,28 +266,10 @@
        ((get-type) (apply get-type args))
        (else (apply super msg args))))
    
-   (define this (extract-this obj-card-with-actions this-a))
+   (define this (extract-this obj-card-tappable this-a))
    (define super (card-permanent name color cost player picture this))
    
-   obj-card-with-actions)
- 
- ;Class: card-action
- (define (card-action description validity-check action)
-   (define (get-description)
-     description)
-   (define (is-valid?)
-     (validity-check))
-   (define (perform)
-     (if (validity-check)
-         (action)))
-   
-   (define (obj-card-action msg . args)
-     (case msg
-       ((get-description) (apply get-description args))
-       ((is-valid?) (apply is-valid? args))
-       ((perform) (apply perform args))
-       (else (assertion-violation 'obj-card-action "message not understood" msg))))
-   obj-card-action)
+   obj-card-tappable)
  
  ;Class: card-land
  (define (card-land name color cost game player picture . this-a)
@@ -299,7 +299,7 @@
        (else (apply super msg args))))
    
    (define this (extract-this obj-card-land this-a))
-   (define super (card-with-actions name color cost player picture this))
+   (define super (card-tappable name color cost player picture this))
    
    ; Adding actions
    (super 'add-action! tap-for-mana)
@@ -444,7 +444,7 @@
        (else (apply super msg args))))
    
    (define this (extract-this obj-card-creature this-a))
-   (define super (card-with-actions name color cost player picture this))
+   (define super (card-tappable name color cost player picture this))
    
    (super 'add-action! (card-action "Attack"
                                     (lambda ()

@@ -1,0 +1,13 @@
+#!r6rs
+
+(library
+ (gui-elements)
+ (export gui-library
+         gui-graveyard
+         gui-in-play
+         gui-hand
+         gui-stack)
+ (import (rnrs base (6)))
+ 
+ (define (gui-library view)
+   

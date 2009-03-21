@@ -145,7 +145,7 @@
                                                                       (let* ([ap (game 'get-active-player)]
                                                                              [ipzone ((ap 'get-player-field) 'get-in-play-zone)])
                                                                         (ipzone 'all-false? (lambda (card)
-                                                                                              (if (card 'supports-type? card-with-actions)
+                                                                                              (if (card 'supports-type? card-tappable)
                                                                                                   (card 'tapped?)
                                                                                                   #f)))))
                                                                     phase-beginning-upkeep)) ; Move to the upkeep
