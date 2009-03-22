@@ -48,6 +48,7 @@
        ((set-life-counter!) (apply set-life-counter! args))
        ((check-dead) (apply check-dead args))
 ;       ((get-view) (apply get-view args))
+       ((get-manapool) (apply get-manapool args))
        ((get-name) (apply get-name args))
        ((get-gui) (apply get-gui args)) 
        ((set-gui!) (apply set-gui! args))

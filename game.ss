@@ -4,12 +4,14 @@
  (game)
  (export game)
  (import (rnrs base (6))
+         (rnrs io simple)
          (magic fields)
          (magic double-linked-position-list)
          (magic phase)
          (magic player)
          (magic gui-view)
-         (magic null-card))
+         (magic null-card)
+         (magic tenth-edition))
  
  (define (game names)
    (define num-players (length names))
@@ -40,6 +42,9 @@
        (players 'delete! pos)
        (players 'add-after! p)))
    
+   (define (get-phases)
+     phases)
+   
    (define (obj-game msg . args)
      (case msg
        ((get-field) (apply get-field args))
@@ -47,6 +52,7 @@
        ((get-num-players) (apply get-num-players args))
        ((get-active-player) (apply get-active-player args))
        ((next-turn!) (apply next-turn! args))
+       ((get-phases) (apply get-phases args))
        (else (assertion-violation 'game "message not understood" msg))))
    (define field (main-field))
    (define players (position-list eq?))
@@ -56,14 +62,22 @@
    
    obj-game)
  
- 
+(define (loop)
+  ((a 'get-phases) 'transition)
+  (display ((a 'get-phases) 'get-current-type))
+  (loop)) 
 (define a (game '("Ruben" "Sander")))
 (define b (a 'get-players))
 (define c (b 'value (b 'first-position)))
 (define d (c 'get-field))
 (define e (d 'get-hand-zone))
-(e 'add-card! (null-card a c))
+(e 'add-card! (card-doomed-necromancer a c))
+(e 'add-card! (card-canopy-spider a c))
+(e 'add-card! (card-forest a c))
+(e 'add-card! (card-forest a c))
 ((c 'get-gui) 'update)
+
+(loop)
 
 )
  

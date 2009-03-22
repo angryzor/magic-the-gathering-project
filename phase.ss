@@ -83,7 +83,7 @@
                                                       'combat-declare-blockers))
    (define phase-combat-damage (phase-state (lambda ()
                                               (let* ([ap (game 'get-active-player)])
-                                                (((ap 'get-player-field) 'get-in-play-zone) 'for-each (lambda (card)
+                                                (((ap 'get-field) 'get-in-play-zone) 'for-each (lambda (card)
                                                                                                         (if (card 'supports-type? 'card-creature)
                                                                                                             (card 'deal-damage))))))
                                             (lambda ()
@@ -143,7 +143,7 @@
    ; We can only move on to the next phase if all cards of the active player are untapped
    (phase-beginning-untap          'add-transition! (fsm-transition (lambda ()
                                                                       (let* ([ap (game 'get-active-player)]
-                                                                             [ipzone ((ap 'get-player-field) 'get-in-play-zone)])
+                                                                             [ipzone ((ap 'get-field) 'get-in-play-zone)])
                                                                         (ipzone 'all-false? (lambda (card)
                                                                                               (if (card 'supports-type? card-tappable)
                                                                                                   (card 'tapped?)
@@ -171,7 +171,7 @@
    (add-stack-resolvers! phase-end-end-of-turn phase-end-cleanup)
    (phase-end-cleanup 'add-transition! (fsm-transition (lambda ()
                                                          ((game 'get-players) 'all-true? (lambda (player)
-                                                                                           (<= (((player 'get-player-field) 'get-hand-zone) 'size) 7))))
+                                                                                           (<= (((player 'get-field) 'get-hand-zone) 'size) 7))))
                                                        phase-beginning-untap))
    
    obj-phases-fsm)

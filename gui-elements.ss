@@ -11,23 +11,37 @@
  
  (define gui-library%
    (class gui-card-control%
+     (init-field game)
      (init-field player)
      
      (inherit-field card)
      
+     (inherit refresh)
+     
      (define/public (update)
-       (set! card (((player 'get-field) 'get-library-zone) 'top)))
+       (set! card (let ([lib ((player 'get-field) 'get-library-zone)])
+                    (if (lib 'empty?)
+                        (no-card game player)
+                        (lib 'top))))
+       (refresh))
      
      (super-new)))
  
  (define gui-graveyard%
    (class gui-card-control%
+     (init-field game)
      (init-field player)
      
      (inherit-field card)
      
+     (inherit refresh)
+     
      (define/public (update)
-       (set! card (((player 'get-field) 'get-graveyard-zone) 'top)))
+       (set! card (let ([grv ((player 'get-field) 'get-graveyard-zone)])
+                    (if (grv 'empty?)
+                        (no-card game player)
+                        (grv 'top))))
+       (refresh))
      
      (super-new)))
  
@@ -42,7 +56,7 @@
                           (let ([hand ((player 'get-field) 'get-hand-zone)]
                                 [newlist '()])
                             (hand 'for-each (lambda (card)
-                                              (set! newlist (cons (new gui-card-control% 
+                                              (set! newlist (cons (new gui-card-with-actions-control% 
                                                                        [parent this]
                                                                        [card card]) newlist))))
                             newlist))))
@@ -59,7 +73,7 @@
                           (let ([hand ((player 'get-field) 'get-in-play-zone)]
                                 [newlist '()])
                             (hand 'for-each (lambda (card)
-                                              (set! newlist (cons (new gui-card-control% 
+                                              (set! newlist (cons (new gui-card-with-actions-control% 
                                                                        [parent this]
                                                                        [card card]) newlist))))
                             newlist))))
@@ -82,9 +96,11 @@
                                  [stretchable-width #t]))
      (define lib (new gui-library% [parent handlevel]
                                    [card (null-card game player)]
+                                   [game game]
                                    [player player]))
      (define grave (new gui-graveyard% [parent handlevel]
                                        [card (null-card game player)]
+                                       [game game]
                                        [player player]))
      
      (define/public (update)

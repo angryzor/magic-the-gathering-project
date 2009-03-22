@@ -24,7 +24,7 @@
                          (eq? (y 'get-color) 'colorless))))
  
  (define (mana-list . lst)
-   (apply position-list manacheck lst))
+   (position-list manacheck lst))
  
  (define (manapool)
    (define cache (mana-list))
@@ -52,6 +52,7 @@
        ((add!) (apply add! args))
        ((can-afford?) (apply can-afford? args))
        ((delete!) (apply delete! args))
+       ((print) (cache 'print))
        (else (assertion-violation 'manapool "message not understood" msg))))
    
    obj-manapool)

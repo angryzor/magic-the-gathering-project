@@ -54,7 +54,7 @@
        ((push!) (apply push! args))
        ((top) (apply top args))
        ((pop!) (apply pop! args))
-       (else (apply super args))))
+       (else (apply super msg args))))
    obj-zone-stacklike)
  
  (define (zone-stack)
@@ -79,7 +79,7 @@
        ((add-card!) (apply add-card! args))
        ((push!) (apply push! args))
        ((resolve-one!) (apply resolve-one! args))
-       (else (apply super args))))
+       (else (apply super msg args))))
    obj-zone-stack)
  
  (define (zone-library)

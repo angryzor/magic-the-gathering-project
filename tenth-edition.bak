@@ -1,0 +1,34 @@
+#!r6rs
+
+(library
+ (tenth-edition)
+ (exports )
+ (imports (rnrs base (6))
+          (magic cards))
+ 
+ 
+ (define (card-canopy-spider game player)
+   (card-creature "Canopy Spider" 
+                  'green 
+                  (mana-list '(green colorless))
+                  game
+                  player
+                  1
+                  3
+                  "resources/bitmaps/cards/creatures/card-canopy-spider.jpg"
+                  '(reach)))
+ 
+ (define (card-doomed-necromancer game player)
+   (card-creature "Doomed Necromancer" 
+                  'black
+                  (mana-list '(black colorless colorless))
+                  game
+                  player
+                  2
+                  2
+                  "resources/bitmaps/cards/creatures/card-doomed-necromancer.jpg"
+                  '()))
+ 
+ 
+ 
+ 

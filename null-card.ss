@@ -2,16 +2,25 @@
 
 (library 
  (null-card)
- (export null-card)
+ (export null-card no-card)
  (import (rnrs base (6))
          (magic cards))
  
  (define (null-card game player)
-   (card "MISSINGNO"
+   (let ([c (card "MISSINGNO"
+                  'white
+                  '()
+                  game
+                  player
+                  "resources/bitmaps/cards/card-back.jpg")])
+     (c 'add-action! (card-action "NULLACTION" (lambda () #t) (lambda () 'ok)))
+     c))
+  (define (no-card game player)
+   (card "EMTPY"
          'white
          '()
          game
          player
-         "resources/bitmaps/cards/card-back.jpg")))
+         "resources/bitmaps/surface/cardslot.png")))
                          
                          
