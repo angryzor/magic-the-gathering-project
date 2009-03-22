@@ -48,8 +48,10 @@
  (define gui-hand%
    (class horizontal-pane%
      (init-field player)
+     (init-field view)
      
      (inherit change-children)
+     (inherit get-children)
      
      (define/public (update)
        (change-children (lambda (l)
@@ -58,13 +60,20 @@
                             (hand 'for-each (lambda (card)
                                               (set! newlist (cons (new gui-card-with-actions-control% 
                                                                        [parent this]
-                                                                       [card card]) newlist))))
+                                                                       [card card]
+                                                                       [view view]) newlist))))
                             newlist))))
+     
+     (define/public (wait-for-target-card-selection)
+       (for-each (lambda (child)
+                   (send child wait-for-target-card-selection)) (get-children)))
+     
      (super-new)))
  
  (define gui-in-play%
    (class horizontal-pane%
      (init-field player)
+     (init-field view)
      
      (inherit change-children)
      
@@ -75,7 +84,8 @@
                             (hand 'for-each (lambda (card)
                                               (set! newlist (cons (new gui-card-with-actions-control% 
                                                                        [parent this]
-                                                                       [card card]) newlist))))
+                                                                       [card card]
+                                                                       [view view]) newlist))))
                             newlist))))
      (super-new)))
  
@@ -83,28 +93,39 @@
    (class vertical-pane%
      (init-field game)
      (init-field player)
+     (init-field view)
      (super-new)
      
      (define ip (new gui-in-play% [parent this]
                                   [player player]
-                                  [min-height CARD-HEIGHT]))
+                                  [min-height CARD-HEIGHT]
+                                  [view view]))
      
      (define handlevel (new horizontal-pane% [parent this]
                                             [min-height CARD-HEIGHT]))
      (define hand (new gui-hand% [parent handlevel]
                                  [player player]
-                                 [stretchable-width #t]))
+                                 [stretchable-width #t]
+                                 [view view]))
      (define lib (new gui-library% [parent handlevel]
                                    [card (null-card game player)]
                                    [game game]
-                                   [player player]))
+                                   [player player]
+                                   [view view]))
      (define grave (new gui-graveyard% [parent handlevel]
                                        [card (null-card game player)]
                                        [game game]
-                                       [player player]))
+                                       [player player]
+                                       [view view]))
      
      (define/public (update)
        (send ip update)
        (send hand update)
        (send lib update)
-       (send grave update))))
+       (send grave update))
+     
+     (define/public (wait-for-target-card-selection)
+       (send ip wait-for-target-card-selection)
+       (send hand wait-for-target-card-selection)
+       (send lib wait-for-target-card-selection)
+       (send grave wait-for-target-card-selection))))

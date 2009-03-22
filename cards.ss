@@ -26,9 +26,6 @@
        obj
        (car this-a)))
  
- (define (update-all-guis game)
-   ((game 'get-players) 'for-each (lambda (player)
-                                    ((player 'get-gui) 'update))))
  
  ; Code
  ; Class: card 
@@ -253,10 +250,10 @@
      tapped)
    (define (tap!)
      (set! tapped #t)
-     (update-all-guis game))
+     (game 'update-all-guis))
    (define (untap!)
      (set! tapped #f)
-     (update-all-guis game))
+     (game 'update-all-guis))
    
    (define (supports-type? type)
      (or (eq? type card-tappable) (super 'supports-type? type)))

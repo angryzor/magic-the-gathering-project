@@ -8,12 +8,15 @@
          (magic mana)
          (magic fields))
  
- (define (player field name)
+ (define (player game field name)
    (define my-field (player-field player))
    (define my-mana (manapool))
 ;   (define my-view '())
    (define life 20)
    (define gui '())
+   (define is-ready #f)
+   (define drawn #f)
+   (define pland #f)
    
    (define (get-life-counter)
      life)
@@ -42,6 +45,35 @@
    (define (get-field)
      my-field)
    
+   (define (set-ready! val)
+     (set! is-ready val))
+   
+   (define (ready?)
+     is-ready)
+   
+   (define (draw-card)
+     (let ([lib (my-field 'get-library-zone)]
+           [hand (my-field 'get-hand-zone)])
+       (if (not (or (lib 'empty?)
+                    (has-drawn?)))
+         (begin
+           (set! drawn #t)
+           (hand 'add-card! (lib 'pop!))
+           (game 'update-all-guis)))))
+   
+   (define (has-drawn?)
+     drawn)
+   
+   (define (set-flag-played-land!)
+     (set! pland #t))
+   
+   (define (has-played-land?)
+     pland)
+   
+   (define (reset-flags!)
+     (set! drawn #f)
+     (set! pland #f))
+   
    (define (obj-player msg . args)
      (case msg
        ((get-life-counter) (apply get-life-counter args))
@@ -53,6 +85,13 @@
        ((get-gui) (apply get-gui args)) 
        ((set-gui!) (apply set-gui! args))
        ((get-field) (apply get-field args))
+       ((set-ready!) (apply set-ready! args))
+       ((ready?) (apply ready? args))
+       ((draw-card) (apply draw-card args))
+       ((set-flag-played-land!) (apply set-flag-played-land! args))
+       ((has-drawn?) (apply has-drawn? args))
+       ((has-played-land?) (apply has-played-land? args))
+       ((reset-flags!) (apply reset-flags! args))
        (else (assertion-violation 'player "message not understood" msg))))
    
    (field 'add-player-field! my-field)

@@ -8,9 +8,20 @@
 (define gui-card-control% 
   (class canvas%
     (init-field card)
+    (init-field view)
     (init [paint-callback (lambda () 'ok)])
     
 ;    (define pic (make-object bitmap% (card 'get-picture)))
+    
+    (field [selection-pending #f])
+    (define/public (wait-for-target-card-selection)
+      (set! selection-pending #t))
+    
+    (define/override (on-event event)
+      (when (and (send event button-up? 'left)
+                 selection-pending)
+        (set! selection-pending #f)
+        (view 'found-card card)))
     
     (super-new [min-width CARD-WIDTH]
                [min-height CARD-HEIGHT]
@@ -29,21 +40,24 @@
 (define gui-card-with-actions-control%
   (class gui-card-control%
     (inherit-field card)
+    (inherit-field selection-pending)
     (inherit popup-menu)
     
     ; Show list of actions on rightclick
     (define/override (on-event event)
-      (cond ((send event button-up? 'right) (let ([acts (card 'get-actions)])
-                                              (unless (acts 'empty?)
-                                                (let ([menu (new popup-menu% [title "Action menu"])])
-                                                  (acts 'for-each (lambda (action)
-                                                                    (when (action 'is-valid?)
-                                                                      (new menu-item% [parent menu]
-                                                                                      [label (action 'get-description)]
-                                                                                      [callback (lambda (i e)
-                                                                                                  (action 'perform))]))))
-                                                  (popup-menu menu (send event get-x) (send event get-y))))))
-            ((send event button-up? 'left) (card 'perform-default-action))))
+      (when (not selection-pending)
+        (cond ((send event button-up? 'right) (let ([acts (card 'get-actions)])
+                                                (unless (acts 'empty?)
+                                                  (let ([menu (new popup-menu% [title "Action menu"])])
+                                                    (acts 'for-each (lambda (action)
+                                                                      (when (action 'is-valid?)
+                                                                        (new menu-item% [parent menu]
+                                                                             [label (action 'get-description)]
+                                                                             [callback (lambda (i e)
+                                                                                         (action 'perform))]))))
+                                                    (popup-menu menu (send event get-x) (send event get-y))))))
+              ((send event button-up? 'left) (card 'perform-default-action))))
+      (super on-event event))
     
     (super-new)))
                                                                   

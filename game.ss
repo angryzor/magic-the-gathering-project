@@ -18,7 +18,7 @@
    
    (define (construct)
      (for-each (lambda (name)
-                 (players 'add-after! (player field name)))
+                 (players 'add-after! (player game field name)))
                names)
      
      (players 'for-each (lambda (player)
@@ -45,6 +45,10 @@
    (define (get-phases)
      phases)
    
+   (define (update-all-guis)
+     (players 'for-each (lambda (player)
+                          ((player 'get-gui) 'update))))
+   
    (define (obj-game msg . args)
      (case msg
        ((get-field) (apply get-field args))
@@ -53,6 +57,7 @@
        ((get-active-player) (apply get-active-player args))
        ((next-turn!) (apply next-turn! args))
        ((get-phases) (apply get-phases args))
+       ((update-all-guis) (apply update-all-guis args))
        (else (assertion-violation 'game "message not understood" msg))))
    (define field (main-field))
    (define players (position-list eq?))
@@ -62,10 +67,10 @@
    
    obj-game)
  
-(define (loop)
+(define (tr)
   ((a 'get-phases) 'transition)
   (display ((a 'get-phases) 'get-current-type))
-  (loop)) 
+  (newline)) 
 (define a (game '("Ruben" "Sander")))
 (define b (a 'get-players))
 (define c (b 'value (b 'first-position)))
@@ -77,7 +82,7 @@
 (e 'add-card! (card-forest a c))
 ((c 'get-gui) 'update)
 
-(loop)
+(tr)
 
 )
  
