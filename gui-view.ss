@@ -5,6 +5,7 @@
 (require (lib "card-dimensions.ss" "magic"))
 (require (lib "gui-elements.ss" "magic"))
 (require (lib "double-linked-position-list.ss" "magic"))
+(require (lib "object.ss" "magic"))
 
 (define (gui-view player game)
   (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))

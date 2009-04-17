@@ -13,7 +13,7 @@
  
  (define (phases-fsm game)
    
-   (define (phase-state entry-action exit-action type)
+   (define (phase-state type)
      (define (to-all-perms msg . args)
        (define (to-all-perms-in-zone zone msg . args)
          (zone 'for-each (lambda (card)

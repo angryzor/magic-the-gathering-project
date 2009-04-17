@@ -1,0 +1,9 @@
+#!r6rs
+
+(library
+ (phase-type)
+ (export phase-type)
+ (import (rnrs base (6))
+         (magic object))
+ 
+ (define (phase-type
