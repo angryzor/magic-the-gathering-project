@@ -7,6 +7,7 @@
          fsm-state)
  (import (rnrs base (6))
          (magic double-linked-position-list)
+         (magic object)
          (magic cards))
  
  ;***************************************************
@@ -18,7 +19,7 @@
  ;       exit-action - a procedure containing the exit action
  ;       size - the maximum number of transitions that can be contained
  ;***************************************************
- (define (fsm-state entry-action exit-action)
+ (define (fsm-state entry-action exit-action . this-a)
    (define trans-list (position-list eq?))
    
    ;=================================================
@@ -31,7 +32,18 @@
      (if (trans-list 'full?)
          (error 'fsm-state.add-transition! "transition list is full. check your fsm-state size")
          (trans-list 'add-after! trans)))
-   
+
+   ;=================================================
+   ; Method add-transition
+   ; Spec: ( fsm-transition -> { #<void> } )
+   ; Desc: adds a new transition to the state
+   ; Args: trans - the transition to be added
+   ;=================================================
+   (define (remove-transition! trans)
+     (let ([pos (trans-list 'find trans)])
+       (if pos
+           (trans-list 'delete! (trans-list 'find trans)))))
+
    ;=================================================
    ; Method next-state
    ; Spec: (  -> fsm-state U { #f } )
@@ -76,14 +88,8 @@
      (if (not (null? exit-action))
          (exit-action)))
    
-   (define (obj-fsm-state msg . args)
-     (case msg
-       ((add-transition!) (apply add-transition! args))
-       ((next-state) (apply next-state args))
-       ((enter) (apply enter args))
-       ((leave) (apply leave args))
-       (else (assertion-violation 'fsm-state-object "message not understood" msg))))
-   obj-fsm-state)
+   (put-interface fsm-state this-a
+                  (add-transition! next-state enter leave)))
  
  
  ;*************************************************************

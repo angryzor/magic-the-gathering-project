@@ -78,7 +78,7 @@
    (define (remove-special-attribute! attrib)
      (let ((pos (special-attribs 'find attrib)))
        (if pos
-           (special-attribs 'delete! attrib))))
+           (special-attribs 'delete! pos))))
    
    (define (supports-type? type)
      (or (eq? type card-creature) (super 'supports-type? type)))

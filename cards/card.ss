@@ -41,7 +41,9 @@
    (define (add-action! action)
      (actions 'add-after! action))
    (define (remove-action! action)
-     (actions 'delete! action))
+    (let ([pos (actions 'find action)])
+	  (if pos
+       (actions 'delete! action))))
    (define (perform-default-action)
      #f)
    
