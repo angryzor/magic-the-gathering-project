@@ -3,8 +3,8 @@
 (library
  (fsm)
  (export fsm
-         fsm-transition
-         fsm-state)
+         fsm-state
+         fsm-transition)
  (import (rnrs base (6))
          (magic double-linked-position-list)
          (magic object)
@@ -19,7 +19,9 @@
  ;       exit-action - a procedure containing the exit action
  ;       size - the maximum number of transitions that can be contained
  ;***************************************************
- (define (fsm-state entry-action exit-action . this-a)
+ (define-dispatch-class (fsm-state entry-action exit-action)
+   (add-transition! next-state enter leave)
+   
    (define trans-list (position-list eq?))
    
    ;=================================================
@@ -86,10 +88,7 @@
    ;=================================================
    (define (leave)
      (if (not (null? exit-action))
-         (exit-action)))
-   
-   (put-interface fsm-state this-a
-                  (add-transition! next-state enter leave)))
+         (exit-action))))
  
  
  ;*************************************************************
@@ -135,7 +134,8 @@
  ; Desc: FSM class; represents a Finite State Machine
  ; Args: state - the starting state that the fsm is in
  ;***************************************************
- (define (fsm state)
+ (define-dispatch-class (fsm state)
+   (transition get-current-state)
    
    ;===================================================
    ; Method transition
@@ -155,16 +155,7 @@
            'ok)))
    
    (define (get-current-state)
-     state)
-   
-   (define (obj-fsm msg . args)
-     (case msg
-       ((transition) (apply transition args))
-       ((get-current-state) (apply get-current-state args))
-       (else (error 'fsm-object "message \"~S\" unknown" msg))))
-   
-   
-   obj-fsm)
+     state))
  
  
 )

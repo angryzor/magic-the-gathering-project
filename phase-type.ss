@@ -17,12 +17,22 @@
          phase-end-end-of-turn-state
          phase-end-cleanup-state)
  (import (rnrs base (6))
+         (magic fsm)
+         (magic cards)
          (magic object)
          (magic double-linked-position-list))
  
  ;==================================================================================
  
- (define (phase-state entry-action exit-action type . this-a)
+ (define-dispatch-subclass (phase-state game entry-action exit-action type)
+   (get-type)
+   (fsm-state (lambda ()
+                (entry-action)
+                (to-all-perms 'turn-begin))
+              (lambda ()
+                (to-all-perms 'turn-end)
+                (exit-action)))
+								   
    (define (to-all-perms msg . args)
      (define (to-all-perms-in-zone zone msg . args)
        (zone 'for-each (lambda (card)
@@ -33,33 +43,26 @@
                             (apply to-all-perms-in-zone (pfield 'get-in-play-zone) msg args)))))
    
    (define (get-type)
-     type)
-   
-   (put-interface-sub phase-state this-a
-                      (fsm-state (lambda ()
-                                   (entry-action)
-                                   (to-all-perms 'turn-begin))
-                                 (lambda ()
-                                   (to-all-perms 'turn-end)
-                                   (exit-action)))
-                      (get-type)))
+     type))
  
  ;----------------------------------------------------------------------
  
- (define (normal-phase-state entry-action exit-action type continue-condition . this-a)
+ (define-dispatch-subclass (normal-phase-state game entry-action exit-action type continue-condition)
+   (attach-next!)
+   (phase-state game entry-action exit-action type)
+   
    (define my-next #f)
    (define (attach-next! phase)
      (if my-next
          (super 'remove-transition! my-next))
      (set! my-next (fsm-transition continue-condition phase))
-     (super 'add-transition! my-next))
-   
-   (put-interface-sub normal-phase-state this-a
-                      (phase-state entry-action exit-action type)
-                      (attach-next!)))
+     (super 'add-transition! my-next)))
  
  ;----------------------------------------------------------------------------------
- (define (stack-resolving-phase-state entry-action exit-action type game . this-a)
+ (define-dispatch-subclass (stack-resolving-phase-state game entry-action exit-action type)
+   (attach-next!)
+   (phase-state game entry-action exit-action type)
+   
    (define my-next #f)
    (define my-same #f)
    
@@ -79,53 +82,50 @@
      (if my-same
          (super 'remove-transition! my-same))
      ; make the stack resolving transitions
-     (set! my-next (apply fsm-transition playersready-nostack? phase trans-action))
+     (set! my-next (fsm-transition playersready-nostack? phase))
      (set! my-same (fsm-transition playersready-somestack? this (lambda () (((game 'get-field) 'get-stack-zone) 'resolve-one!))))
      ; and add them
-     (state 'add-transition! my-next)
-     (state 'add-transition! my-same))
-   
-   (put-interface-sub stack-resolving-phase-state this-a
-                      (phase-state entry-action exit-action type)
-                      (attach-next!)))
+     (super 'add-transition! my-next)
+     (super 'add-transition! my-same)))
+	 
  ;==================================================================================
  
  
  
  ;Beginning phases
  (define (phase-beginning-untap-state game) 
-   (normal-phase-state (lambda () 'ok) (lambda () 'ok) 'beginning-untap (lambda ()
+   (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-untap (lambda ()
                                                                     (let* ([ap (game 'get-active-player)]
                                                                            [ipzone ((ap 'get-field) 'get-in-play-zone)])
                                                                       (ipzone 'all-false? (lambda (card)
                                                                                             (if (card 'supports-type? card-tappable)
                                                                                                 (card 'tapped?)
                                                                                                 #f)))))))
- (define (phase-beginning-upkeep-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'beginning-upkeep game))
- (define (phase-beginning-draw-state game) (normal-phase-state (lambda () 'ok) (lambda () 'ok) 'beginning-draw (lambda () ; Wait till all players have drawn a card
+ (define (phase-beginning-upkeep-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-upkeep))
+ (define (phase-beginning-draw-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-draw (lambda () ; Wait till all players have drawn a card
                                                                                                            ((game 'get-players) 'all-true? (lambda (player)
                                                                                                                                              (player 'has-drawn?))))))
  
- (define (phase-main-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'main game))
+ (define (phase-main-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'main))
  
  ; Combat phases
- (define (phase-combat-begin-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'combat-begin game))
- (define (phase-combat-declare-attackers-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'combat-declare-attackers game))
- (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'combat-blockers game))
- (define (phase-combat-damage-state game) (stack-resolving-phase-state (lambda ()
+ (define (phase-combat-begin-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-begin))
+ (define (phase-combat-declare-attackers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-attackers))
+ (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-blockers))
+ (define (phase-combat-damage-state game) (stack-resolving-phase-state game (lambda ()
                                                                    (let* ([ap (game 'get-active-player)])
                                                                      (((ap 'get-field) 'get-in-play-zone) 'for-each (lambda (card)
                                                                                                                       (if (card 'supports-type? 'card-creature)
                                                                                                                           (card 'deal-damage))))))
                                                                  (lambda () 'ok) 'combat-damage game))
- (define (phase-combat-end-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'combat-end game))
+ (define (phase-combat-end-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-end))
  
  ; Second main phase
  ;   (define (phase-second-main) (main-phase))
  
  ; End of turn
- (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn game))
- (define (phase-end-cleanup-state game) (normal-phase-state (lambda () 'ok) (lambda () 'ok) 'end-cleanup (lambda ()
+ (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn))
+ (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-cleanup (lambda ()
                                                                                                      ((game 'get-players) 'all-true? (lambda (player)
                                                                                                                                        (<= (((player 'get-field) 'get-hand-zone) 'size) 7))))))
  

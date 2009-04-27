@@ -1,0 +1,36 @@
+#!r6rs
+
+(library
+ (export phase-std-bundle)
+ (import (rnrs base (6))
+         (rnrs magic objects)
+         (rnrs magic phase-type))
+ 
+ (define (phase-std-bundle game . this)
+   (define beginning-untap (phase-beginning-untap-state game))
+   (define beginning-upkeep (phase-beginning-upkeep-state))
+   (define beginning-draw (phase-beginning-draw-state))
+   (define first-main (phase-main-state))
+   (define combat-begin (phase-combat-begin-state))
+   (define combat-declare-attackers (phase-combat-declare-attackers-state))
+   (define combat-declare-blockers (phase-combat-declare-blockers-state))
+   (define combat-damage (phase-combat-damage-state))
+   (define combat-end (phase-combat-end-state))
+   (define second-main (phase-main-state))
+   (define end-end-of-turn (phase-end-end-of-turn-state))
+   (define end-cleanup (phase-end-cleanup-state))
+   
+   (define (get-beginning-untap) beginning-untap)
+   (define (get-beginning-upkeep) beginning-upkeep)
+   (define (get-beginning-draw) beginning-draw)
+   (define (get-first-main) first-main)
+   (define (get-combat-begin) combat-begin)
+   (define (get-combat-declare-attackers) combat-declare-attackers)
+   (define (get-combat-declare-blockers) combat-declare-blockers)
+   (define (get-combat-damage) combat-damage)
+   (define (get-combat-end) combat-end)
+   (define (get-second-main) second-main)
+   (define (get-end-end-of-turn) end-end-of-turn)
+   (define (get-end-cleanup) end-cleanup)
+   
+   (
