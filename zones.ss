@@ -11,7 +11,9 @@
          (magic double-linked-position-list)
          (magic cards))
  
- (define (zone)
+ (define-dispatch-class (zone)
+   (add-card! delete-card! move-card!)
+   
    (define super (position-list eq?))
    
    (define (add-card! card . newpos)
@@ -23,15 +25,14 @@
            (super 'delete! pos)
            (error 'zone.delete-card! "card does not exist!" card))))
    
-   (define (obj-zone msg . args)
-     (case msg
-       ((add-card!) (apply add-card! args))
-       ((delete-card!) (apply delete-card! args))
-       (else (apply super msg args))))
-   obj-zone)
+   (define (move-card! card new-zone)
+     (this 'delete-card! card)
+     (new-zone 'add-card! card)
+     (card 'zone-change this new-zone)))
  
- (define (zone-stacklike)
-   (define super (zone))
+ (define-dispatch-subclass (zone-stacklike)
+   (push! top pop!)
+   (zone)
    
    (define (push! card)
      (super 'add-card! card))
@@ -47,18 +48,11 @@
          (let* ([pos (super 'first-position)]
                 [card (super 'value pos)])
            (super 'delete! pos)
-           card)))
-   
-   (define (obj-zone-stacklike msg . args)
-     (case msg
-       ((push!) (apply push! args))
-       ((top) (apply top args))
-       ((pop!) (apply pop! args))
-       (else (apply super msg args))))
-   obj-zone-stacklike)
+           card))))
  
- (define (zone-stack)
-   (define super (zone-stacklike))
+ (define-dispatch-subclass (zone-stack)
+   (add-card! push!)
+   (zone-stacklike)
    
    (define (add-card! card)
      (if (card 'supports-type? card-stackable)
@@ -70,33 +64,20 @@
    (define (push! card)
      (add-card! card))
    
-   (define (resolve-one!)
-     (let ([card (super 'pop!)])
-       (card 'cast)))
-   
-   (define (obj-zone-stack msg . args)
-     (case msg
-       ((add-card!) (apply add-card! args))
-       ((push!) (apply push! args))
-       ((resolve-one!) (apply resolve-one! args))
-       (else (apply super msg args))))
-   obj-zone-stack)
+;   (define (resolve-one!)
+;     (let ([card (super 'pop!)])
+;       (card 'cast)))
+   )
  
- (define (zone-library)
-   (define super (zone-stacklike))
+ (define-dispatch-subclass (zone-library)
+   (shuffle draw)
+   (zone-stacklike)
    
    (define (shuffle)
      #f)
    
    (define (draw)
-     (super 'pop!))
-   
-   (define (obj-zone-library msg . args)
-     (case msg
-       ((shuffle) (apply shuffle args))
-       ((draw) (apply draw args))
-       (else (apply super msg args))))
-   obj-zone-library)
+     (super 'pop!)))
  
  (define (zone-graveyard)
    (define super (zone-stacklike))

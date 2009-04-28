@@ -1,8 +1,20 @@
 #!r6rs
 
+(library
+ (card)
+ (export card
+         card-action)
+ (import (rnrs base (6))
+         (magic double-linked-position-list)
+         (magic object)
+         (magic cards card-action))
+
  ; Code
  ; Class: card 
- (define (card name color cost game player picture . this-a)
+ (define-dispatch-class (card name color cost game player picture)
+   (get-name get-color get-cost get-game get-player set-cost! can-play?
+             draw supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
+   
    (define actions (position-list eq?))
    
    (define (get-name)
@@ -21,6 +33,10 @@
      #f) ; you can never play this card.
    (define (draw)
      #f)
+   (define (destroy)
+     #f)
+   (define (resurrect)
+     #f)
    (define (supports-type? type)
      (eq? type card))
    (define (get-type)
@@ -32,7 +48,9 @@
    (define (add-action! action)
      (actions 'add-after! action))
    (define (remove-action! action)
-     (actions 'delete! action))
+    (let ([pos (actions 'find action)])
+	  (if pos
+       (actions 'delete! action))))
    (define (perform-default-action)
      #f)
    
@@ -53,8 +71,12 @@
        ((add-action!) (apply add-action! args))
        ((remove-action!) (apply remove-action! args))
        ((perform-default-action) (apply perform-default-action args))
-       (else (assertion-violation 'obj-card "message not understood" msg))))
+       (else (assertion-violation 'card "message not understood" msg))))
    
    (define this (extract-this obj-card this-a))
    
    obj-card)
+
+
+ 
+ )

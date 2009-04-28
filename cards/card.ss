@@ -11,8 +11,14 @@
 
  ; Code
  ; Class: card 
- (define (card name color cost game player picture . this-a)
+ (define-dispatch-class (card name color cost game player picture)
+   (get-name get-color get-cost get-game get-player set-cost! can-play?
+             draw destroy supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
+   
    (define actions (position-list eq?))
+   
+   (define draw-action (card-action "Draw" (lambda ()
+                                             (player 'draw-card))))
    
    (define (get-name)
      name)
@@ -29,7 +35,11 @@
    (define (can-play?)
      #f) ; you can never play this card.
    (define (draw)
+     (remove-action! draw-action))
+   (define (destroy)
      #f)
+   (define (enter-library)
+     (add-action! draw-action))
    (define (supports-type? type)
      (eq? type card))
    (define (get-type)
@@ -46,29 +56,14 @@
        (actions 'delete! action))))
    (define (perform-default-action)
      #f)
-   
-   (define (obj-card msg . args)
-     (case msg
-       ((get-name) (apply get-name args))
-       ((get-color) (apply get-color args))
-       ((get-cost) (apply get-cost args))
-       ((get-game) (apply get-game args))
-       ((get-player) (apply get-player args))
-       ((set-cost!) (apply set-cost! args))
-       ((can-play?) (apply can-play? args))
-       ((draw) (apply draw args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
-       ((get-picture) (apply get-picture args))
-       ((get-actions) (apply get-actions args))
-       ((add-action!) (apply add-action! args))
-       ((remove-action!) (apply remove-action! args))
-       ((perform-default-action) (apply perform-default-action args))
-       (else (assertion-violation 'card "message not understood" msg))))
-   
-   (define this (extract-this obj-card this-a))
-   
-   obj-card)
+   (define (zone-change source dest)
+     (let ([pfield (player 'get-field)])
+       (case source
+         (((pfield 'get-library-zone)) (this 'draw)))
+       (case dest
+         (((pfield 'get-library-zone)) (this 'enter-library))
+         (((pfield 'get-graveyard-zone)) (this 'destroy))))))
+
 
 
  
