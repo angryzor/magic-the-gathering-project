@@ -17,7 +17,8 @@
    (define super (position-list eq?))
    
    (define (add-card! card . newpos)
-     (apply super 'add-before! card newpos))
+     (apply super 'add-before! card newpos)
+     (card 'changed-zone this))
    
    (define (delete-card! card)
      (let ([pos (super 'find card)])
@@ -27,8 +28,7 @@
    
    (define (move-card! card new-zone)
      (this 'delete-card! card)
-     (new-zone 'add-card! card)
-     (card 'zone-change this new-zone)))
+     (new-zone 'add-card! card)))
  
  (define-dispatch-subclass (zone-stacklike)
    (push! top pop!)
@@ -57,8 +57,7 @@
    (define (add-card! card)
      (if (card 'supports-type? card-stackable)
          (begin
-           (super 'add-card! card)
-           (card 'play))
+           (super 'add-card! card))
          (assertion-violation 'zone-stack.add-card! "trying to add non-stackable card")))
    
    (define (push! card)
@@ -80,38 +79,24 @@
      (super 'pop!)))
  
  (define (zone-graveyard)
-   (define super (zone-stacklike))
-   
-   (define (obj-zone-graveyard msg . args)
-     (case msg
-       (else (apply super msg args))))
-   obj-zone-graveyard)
+   ()
+   (zone-stacklike))
  
  (define (zone-hand)
-   (define super (zone))
+   (sort)
+   (zone)
    
    (define (sort old-pos new-pos)
-     #f)
-   
-   (define (obj-zone-hand msg . args)
-     (case msg
-       (else (apply super msg args))))
-   obj-zone-hand)
+     #f))
  
  (define (zone-in-play)
-   (define super (zone))
+   (add-card!)
+   (zone)
    
    (define (add-card! card)
      (if (card 'supports-type? card-permanent)
          (begin
-           (super 'add-card! card)
-           (card 'play))
-         (assertion-violation 'zone-in-play.add-card! "trying to add non-permanent card")))
-
-   (define (obj-zone-in-play msg . args)
-     (case msg
-       ((add-card!) (apply add-card! args))
-       (else (apply super msg args))))
-   obj-zone-in-play)
+           (super 'add-card! card))
+         (assertion-violation 'zone-in-play.add-card! "trying to add non-permanent card"))))
  
  )

@@ -1,6 +1,13 @@
 #!r6rs
 
- (define (card-tappable name color cost game player picture . this-a)
+(library
+ (card-tappable)
+ (export card-tappable)
+ (import (rnrs base (6))
+         (magic object)
+         (magic cards card-permanent))
+
+ (define-dispatch-subclass (card-tappable name color cost game player picture)
    (define tapped #f)
    
    (define (tapped?)
@@ -30,3 +37,5 @@
    (define super (card-permanent name color cost game player picture this))
    
    obj-card-tappable)
+
+ )

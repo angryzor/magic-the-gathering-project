@@ -2,8 +2,137 @@
 
 (library
  (phase-type)
- (export phase-type)
+ (export phase-state
+         normal-phase-state
+         stack-resolving-phase-state
+         phase-beginning-untap-state
+         phase-beginning-upkeep-state
+         phase-beginning-draw-state
+         phase-main-state
+         phase-combat-begin-state
+         phase-combat-declare-attackers-state
+         phase-combat-declare-blockers-state
+         phase-combat-damage-state
+         phase-combat-end-state
+         phase-end-end-of-turn-state
+         phase-end-cleanup-state)
  (import (rnrs base (6))
-         (magic object))
+         (magic fsm)
+         (magic cards)
+         (magic object)
+         (magic double-linked-position-list))
  
- (define (phase-type
+ ;==================================================================================
+ 
+ (define-dispatch-subclass (phase-state game entry-action exit-action type)
+   (get-type)
+   (fsm-state (lambda ()
+                (entry-action)
+                (to-all-perms 'turn-begin))
+              (lambda ()
+                (to-all-perms 'turn-end)
+                (exit-action)))
+								   
+   (define (to-all-perms msg . args)
+     (define (to-all-perms-in-zone zone msg . args)
+       (zone 'for-each (lambda (card)
+                         (if (card 'supports-type? card-permanent)
+                             (apply card msg args)))))
+     (let ([pfields ((game 'get-field) 'get-player-fields)])
+       (pfields 'for-each (lambda (pfield)
+                            (apply to-all-perms-in-zone (pfield 'get-in-play-zone) msg args)))))
+   
+   (define (get-type)
+     type))
+ 
+ ;----------------------------------------------------------------------
+ 
+ (define-dispatch-subclass (normal-phase-state game entry-action exit-action type continue-condition)
+   (attach-next!)
+   (phase-state game entry-action exit-action type)
+   
+   (define my-next #f)
+   (define (attach-next! phase)
+     (if my-next
+         (super 'remove-transition! my-next))
+     (set! my-next (fsm-transition continue-condition phase))
+     (super 'add-transition! my-next)))
+ 
+ ;----------------------------------------------------------------------------------
+ (define-dispatch-subclass (stack-resolving-phase-state game entry-action exit-action type)
+   (attach-next!)
+   (phase-state game entry-action exit-action type)
+   
+   (define my-next #f)
+   (define my-same #f)
+   
+   (define (playersready-nostack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (((game 'get-field) 'get-stack-zone) 'empty?)))
+   
+   (define (playersready-somestack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (not (((game 'get-field) 'get-stack-zone) 'empty?))))
+   
+   (define (attach-next! phase)
+     (if my-next
+         (super 'remove-transition! my-next))
+     (if my-same
+         (super 'remove-transition! my-same))
+     ; make the stack resolving transitions
+     (set! my-next (fsm-transition playersready-nostack? phase))
+     (set! my-same (fsm-transition playersready-somestack? this (lambda () (((game 'get-field) 'get-stack-zone) 'resolve-one!))))
+     ; and add them
+     (super 'add-transition! my-next)
+     (super 'add-transition! my-same)))
+	 
+ ;==================================================================================
+ 
+ 
+ 
+ ;Beginning phases
+ (define (phase-beginning-untap-state game) 
+   (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-untap (lambda ()
+                                                                    (let* ([ap (game 'get-active-player)]
+                                                                           [ipzone ((ap 'get-field) 'get-in-play-zone)])
+                                                                      (ipzone 'all-false? (lambda (card)
+                                                                                            (if (card 'supports-type? card-tappable)
+                                                                                                (card 'tapped?)
+                                                                                                #f)))))))
+ (define (phase-beginning-upkeep-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-upkeep))
+ (define (phase-beginning-draw-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-draw (lambda () ; Wait till all players have drawn a card
+                                                                                                           ((game 'get-players) 'all-true? (lambda (player)
+                                                                                                                                             (player 'has-drawn?))))))
+ 
+ (define (phase-main-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'main))
+ 
+ ; Combat phases
+ (define (phase-combat-begin-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-begin))
+ (define (phase-combat-declare-attackers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-attackers))
+ (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-blockers))
+ (define (phase-combat-damage-state game) (stack-resolving-phase-state game (lambda ()
+                                                                   (let* ([ap (game 'get-active-player)])
+                                                                     (((ap 'get-field) 'get-in-play-zone) 'for-each (lambda (card)
+                                                                                                                      (if (card 'supports-type? 'card-creature)
+                                                                                                                          (card 'deal-damage))))))
+                                                                 (lambda () 'ok) 'combat-damage game))
+ (define (phase-combat-end-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-end))
+ 
+ ; Second main phase
+ ;   (define (phase-second-main) (main-phase))
+ 
+ ; End of turn
+ (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn))
+ (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-cleanup (lambda ()
+                                                                                                     ((game 'get-players) 'all-true? (lambda (player)
+                                                                                                                                       (<= (((player 'get-field) 'get-hand-zone) 'size) 7))))))
+ 
+ 
+  
+  
+  
+  )
+ 
+ 

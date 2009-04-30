@@ -1,5 +1,11 @@
 #!r6rs
 
+(library
+ (card-sorcery)
+ (export card-sorcery)
+ (import (rnrs base (6))
+         (magic object)
+         (magic cards card-stackable))
 
  ;Class: card-sorcery
  (define (card-sorcery name color cost game player picture . this-a)
@@ -25,3 +31,4 @@
    
    obj-card-sorcery)
  
+)

@@ -6,7 +6,7 @@
          (magic object))
  
   ;Class: card-action
- (define-dispatch-class (card-action description ;validity-check
+ (define-dispatch-class (card-action description ; validity-check
                                      action)
    (get-description perform)
    
@@ -15,6 +15,5 @@
 ;   (define (is-valid?)
 ;     (validity-check))
    (define (perform)
-;     (if (validity-check)
-         (action))) 
+     (action))
  )

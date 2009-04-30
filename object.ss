@@ -62,7 +62,8 @@
  (define-syntax define-dispatch-class
    (lambda (x)
      (syntax-case x (init)
-       [(k (name class-args ...) (interface ...) (init init-clauses ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)])
+       [(k (name class-args ...) (interface ...) (init init-clauses ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)]
+                                                                                                 [obj (datum->syntax #'k (string->symbol (string-append "obj-" (symbol->string (syntax->datum #'name)))))])
                                                                         #'(define (name class-args ... . this-a)
                                                                             rest ...
                                                                             (define (obj msg . args)
@@ -73,7 +74,8 @@
                                                                             (define this (extract-this obj this-a))
                                                                             init-clauses ...
                                                                             obj))]
-       [(k (name class-args ...) (interface ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)])
+       [(k (name class-args ...) (interface ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)]
+                                                                         [obj (datum->syntax #'k (string->symbol (string-append "obj-" (symbol->string (syntax->datum #'name)))))])
                                                              #'(define (name class-args ... . this-a)
                                                                  rest ...
                                                                  (define (obj msg . args)
@@ -88,7 +90,8 @@
    (lambda (x)
      (syntax-case x (init)
        [(k (name class-args ...) (interface ...) (super-name super-args ...) (init init-clauses ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)]
-                                                                                                                [super (datum->syntax #'k 'super)])
+                                                                                                                             [super (datum->syntax #'k 'super)]
+                                                                                                                             [obj (datum->syntax #'k (string->symbol (string-append "obj-" (symbol->string (syntax->datum #'name)))))])
                                                                                                     #'(define (name class-args ... . this-a)
                                                                                                         rest ...
                                                                                                         (define (obj msg . args)
@@ -101,7 +104,8 @@
                                                                                                         init-clauses ...
                                                                                                         obj))]
        [(k (name class-args ...) (interface ...) (super-name super-args ...) rest ...) (with-syntax ([this (datum->syntax #'k 'this)]
-                                                                                                     [super (datum->syntax #'k 'super)])
+                                                                                                     [super (datum->syntax #'k 'super)]
+                                                                                                     [obj (datum->syntax #'k (string->symbol (string-append "obj-" (symbol->string (syntax->datum #'name)))))])
                                                                                          #'(define (name class-args ... . this-a)
                                                                                              rest ...
                                                                                              (define (obj msg . args)

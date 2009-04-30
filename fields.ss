@@ -52,6 +52,19 @@
    (define (get-stack-zone)
      stack)
    
+   (define (to-all msg . args)
+     (define (to-all-in-zone zone msg . args)
+       (zone 'for-each (lambda (card)
+                             (apply card msg args))))
+     (let ([pfields ((game 'get-field) 'get-player-fields)])
+       (pfields 'for-each (lambda (pfield)
+                            (apply to-all-in-zone (pfield 'get-in-play-zone) msg args)
+                            (apply to-all-in-zone (pfield 'get-hand-zone) msg args)
+                            (apply to-all-in-zone (pfield 'get-library-zone) msg args)
+                            (apply to-all-in-zone (pfield 'get-graveyard-zone) msg args)
+                            (apply to-all-in-zone (pfield 'get-library-zone) msg args)))))
+
+   
    (define (obj-main-field msg . args)
      (case msg
        ((add-player-field!) (apply add-player-field! args))

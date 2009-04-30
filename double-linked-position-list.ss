@@ -288,6 +288,9 @@
                                (or x y))
                              #f))))
            
+           (define (clear!)
+             (cleanup-list))
+           
            (define (obj-d-l-position-list msg . args)
              (case msg
                ((length) (apply length args))
@@ -304,6 +307,7 @@
                ((delete!) (apply delete! args))
                ((add-before!) (apply add-before! args))
                ((add-after!) (apply add-after! args))
+               ((clear!) (apply clear! args))
                ((next) (apply getnext args))
                ((prev) (apply getprev args))
                ((value) (apply getval args))

@@ -1,12 +1,21 @@
 #!r6rs
 
+(library
+ (card-land)
+ (export card-land)
+ (import (rnrs base (6))
+         (magic object)
+         (magic mana)
+         (magic cards card-tappable)
+         (magic cards card-action))
+
  ;Class: card-land
  (define (card-land name color game player picture . this-a)
    ; Actions:
    ; This card can be tapped for mana. This is the default action.
    (define tap-for-mana (card-action "Tap: +1 mana"
                                      (lambda ()
-                                       (not (obj-card-land 'tapped?)))
+                                       (not (this 'tapped?)))
                                      (lambda ()
                                        (super 'tap!)
                                        ((player 'get-manapool) 'add! (mana-list (mana-unit color))))))
@@ -34,3 +43,5 @@
    (super 'add-action! tap-for-mana)
    
    obj-card-land)
+
+ )

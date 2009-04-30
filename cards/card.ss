@@ -13,9 +13,10 @@
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
    (get-name get-color get-cost get-game get-player set-cost! can-play?
-             draw destroy supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
    
    (define actions (position-list eq?))
+   (define my-zone '())
    
    (define draw-action (card-action "Draw" (lambda ()
                                              (player 'draw-card))))
@@ -38,8 +39,6 @@
      (remove-action! draw-action))
    (define (destroy)
      #f)
-   (define (enter-library)
-     (add-action! draw-action))
    (define (supports-type? type)
      (eq? type card))
    (define (get-type)
@@ -54,17 +53,21 @@
     (let ([pos (actions 'find action)])
 	  (if pos
        (actions 'delete! action))))
+   (define (clear-actions!)
+     (actions 'clear!))
    (define (perform-default-action)
      #f)
-   (define (zone-change source dest)
-     (let ([pfield (player 'get-field)])
-       (case source
-         (((pfield 'get-library-zone)) (this 'draw)))
-       (case dest
-         (((pfield 'get-library-zone)) (this 'enter-library))
-         (((pfield 'get-graveyard-zone)) (this 'destroy))))))
-
-
-
+   (define (changed-zone zone)
+     (set! my-zone zone)
+     (this 'update-actions))
+   (define (get-zone)
+     my-zone))
+   (define (update-actions)
+     (clear-actions!)
+     (let* ([p-field (player 'get-field)]
+            [phases (game 'get-phases)]
+            [c-phase-type (phases 'get-current-type)])
+       (cond ((and (eq? my-zone (p-field 'get-library-zone))
+                   (eq? c-phase-type 'beginning-draw)) (add-action! draw-action)))))
  
  )

@@ -11,7 +11,12 @@
          (magic cards card-action))
 
  ;Class: card-creature
- (define (card-creature name color cost game player power toughness picture attr-lst . this-a)
+ (define-dispatch-subclass (card-creature name color cost game player power toughness picture attr-lst)
+   (deal-damage can-block? turn-end get-power set-power! get-toughness
+    set-toughness! get-health set-health! is-blocked! attacks! get-special-attributes 
+    has-special-attribute? add-special-attribute! remove-special-attribute! supports-type? get-type)
+   (card-tappable name color cost game player picture)
+   
    (define health toughness)
    (define special-attribs (position-list eq? attr-lst))
    
@@ -83,46 +88,19 @@
    (define (supports-type? type)
      (or (eq? type card-creature) (super 'supports-type? type)))
    (define (get-type)
-     card-creature)
-   
-   (define (obj-card-creature msg . args)
-     (case msg
-       ((deal-damage) (apply deal-damage args))
-       ((can-block?) (apply can-block? args))
-       ((turn-end) (apply turn-end args))
-       ((get-power) (apply get-power args))
-       ((set-power!) (apply set-power! args))
-       ((get-toughness) (apply get-toughness args))
-       ((set-toughness!) (apply set-toughness! args))
-       ((get-health) (apply get-health args))
-       ((set-health!) (apply set-health! args))
-       ((is-blocked!) (apply is-blocked! args))
-       ((attacks!) (apply attacks! args))
-       ((get-special-attributes) (apply get-special-attributes args))
-       ((has-special-attribute?) (apply has-special-attribute? args))
-       ((add-special-attribute!) (apply add-special-attribute! args))
-       ((remove-special-attribute!) (apply remove-special-attribute! args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
-       (else (apply super msg args))))
-   
-   (define this (extract-this obj-card-creature this-a))
-   (define super (card-tappable name color cost game player picture this))
-   
-   (super 'add-action! (card-action "Attack"
-                                    (lambda ()
-                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
-                                           (eq? player (game 'get-active-player))))
-                                    (lambda ()
-                                      (attacks!))))
-   (super 'add-action! (card-action "Block"
-                                    (lambda ()
-                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
-                                           (not (eq? player (game 'get-active-player)))))
-                                    (lambda ()
-                                    ;  ((gui 'wait-for-target-card-selection) 'is-blocked! this)
-                                      'ok)))
-   
-   obj-card-creature)
-
+     card-creature))
  )
+
+;   (super 'add-action! (card-action "Attack"
+;                                    (lambda ()
+;                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
+;                                           (eq? player (game 'get-active-player))))
+;                                    (lambda ()
+;                                      (attacks!))))
+;   (super 'add-action! (card-action "Block"
+;                                    (lambda ()
+;                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
+;                                           (not (eq? player (game 'get-active-player)))))
+;                                    (lambda ()
+;                                    ;  ((gui 'wait-for-target-card-selection) 'is-blocked! this)
+;                                      'ok)))

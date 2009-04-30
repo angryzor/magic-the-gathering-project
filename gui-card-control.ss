@@ -50,11 +50,10 @@
                                                 (unless (acts 'empty?)
                                                   (let ([menu (new popup-menu% [title "Action menu"])])
                                                     (acts 'for-each (lambda (action)
-                                                                      (when (action 'is-valid?)
-                                                                        (new menu-item% [parent menu]
-                                                                             [label (action 'get-description)]
-                                                                             [callback (lambda (i e)
-                                                                                         (action 'perform))]))))
+                                                                      (new menu-item% [parent menu]
+                                                                           [label (action 'get-description)]
+                                                                           [callback (lambda (i e)
+                                                                                       (action 'perform))])))
                                                     (popup-menu menu (send event get-x) (send event get-y))))))
               ((send event button-up? 'left) (card 'perform-default-action))))
       (super on-event event))

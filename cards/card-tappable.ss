@@ -7,7 +7,10 @@
          (magic object)
          (magic cards card-permanent))
 
- (define (card-tappable name color cost game player picture . this-a)
+ (define-dispatch-subclass (card-tappable name color cost game player picture)
+   (tapped? tap! untap! supports-type? get-type)
+   (card-permanent name color cost game player picture)
+   
    (define tapped #f)
    
    (define (tapped?)
@@ -22,20 +25,6 @@
    (define (supports-type? type)
      (or (eq? type card-tappable) (super 'supports-type? type)))
    (define (get-type)
-     card-tappable)
-   
-   (define (obj-card-tappable msg . args)
-     (case msg
-       ((tapped?) (apply tapped? args))
-       ((tap!) (apply tap! args))
-       ((untap!) (apply untap! args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
-       (else (apply super msg args))))
-   
-   (define this (extract-this obj-card-tappable this-a))
-   (define super (card-permanent name color cost game player picture this))
-   
-   obj-card-tappable)
+     card-tappable))
 
  )

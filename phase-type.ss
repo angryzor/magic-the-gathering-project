@@ -28,6 +28,7 @@
    (get-type)
    (fsm-state (lambda ()
                 (entry-action)
+                ((game 'get-field) 'to-all 'update-actions)
                 (to-all-perms 'turn-begin))
               (lambda ()
                 (to-all-perms 'turn-end)
@@ -41,7 +42,7 @@
      (let ([pfields ((game 'get-field) 'get-player-fields)])
        (pfields 'for-each (lambda (pfield)
                             (apply to-all-perms-in-zone (pfield 'get-in-play-zone) msg args)))))
-   
+      
    (define (get-type)
      type))
  
