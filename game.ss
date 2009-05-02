@@ -18,7 +18,7 @@
    
    (define (construct)
      (for-each (lambda (name)
-                 (players 'add-after! (player game field name)))
+                 (players 'add-after! (player obj-game field name)))
                names)
      
      (players 'for-each (lambda (player)
@@ -76,10 +76,12 @@
 (define c (b 'value (b 'first-position)))
 (define d (c 'get-field))
 (define e (d 'get-hand-zone))
+(define f (d 'get-library-zone))
 (e 'add-card! (card-doomed-necromancer a c))
 (e 'add-card! (card-canopy-spider a c))
 (e 'add-card! (card-forest a c))
 (e 'add-card! (card-forest a c))
+(f 'add-card! (card-forest a c))
 ((c 'get-gui) 'update)
 
 (tr)

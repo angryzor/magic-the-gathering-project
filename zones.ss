@@ -8,13 +8,14 @@
          zone-hand
          zone-in-play)
  (import (rnrs base (6))
+         (rnrs io simple)
+         (magic object)
          (magic double-linked-position-list)
          (magic cards))
  
- (define-dispatch-class (zone)
+ (define-dispatch-subclass (zone)
    (add-card! delete-card! move-card!)
-   
-   (define super (position-list eq?))
+   (position-list eq?)
    
    (define (add-card! card . newpos)
      (apply super 'add-before! card newpos)
@@ -40,7 +41,7 @@
    (define (top)
      (if (super 'empty?)
          (error 'zone-stacklike.top "zone is empty")
-         (super 'first-position)))
+         (super 'value (super 'first-position))))
    
    (define (pop!)
      (if (super 'empty?)
@@ -78,18 +79,18 @@
    (define (draw)
      (super 'pop!)))
  
- (define (zone-graveyard)
+ (define-dispatch-subclass (zone-graveyard)
    ()
    (zone-stacklike))
  
- (define (zone-hand)
+ (define-dispatch-subclass (zone-hand)
    (sort)
    (zone)
    
    (define (sort old-pos new-pos)
      #f))
  
- (define (zone-in-play)
+ (define-dispatch-subclass (zone-in-play)
    (add-card!)
    (zone)
    

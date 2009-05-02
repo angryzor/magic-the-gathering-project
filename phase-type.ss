@@ -104,8 +104,7 @@
                                                                                                 #f)))))))
  (define (phase-beginning-upkeep-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-upkeep))
  (define (phase-beginning-draw-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'beginning-draw (lambda () ; Wait till all players have drawn a card
-                                                                                                           ((game 'get-players) 'all-true? (lambda (player)
-                                                                                                                                             (player 'has-drawn?))))))
+                                                                                                           ((game 'get-active-player) 'has-drawn?))))
  
  (define (phase-main-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'main))
  

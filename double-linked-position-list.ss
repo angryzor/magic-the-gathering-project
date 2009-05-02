@@ -30,9 +30,13 @@
 (library (position-list)
          (export position-list)
          (import (rnrs base (6))
-                 (rnrs io simple))
+                 (rnrs io simple)
+                 (magic object))
          
-         (define (double-linked-position-list ==? . lst) ;lst is used if creating from scheme list
+         (define-dispatch-class (double-linked-position-list ==?)
+           (length full? empty? map map! for-each foldl foldr first-position last-position
+            find delete! add-before! add-after! clear! next prev value has-next? has-prev?
+            print duplicate to-scheme-list all-true? all-false?)
            (define (double-linked-position prev next val)
              (define (has-prev?)
                (not (null? prev)))
@@ -228,19 +232,19 @@
                    (attach-last val)
                    (attach-after-middle val afterpos))))
            
-           (define (getnext pos)
+           (define (next pos)
              (pos 'next))
            
-           (define (getprev pos)
+           (define (prev pos)
              (pos 'prev))
            
-           (define (getval pos)
+           (define (value pos)
              (pos 'value))
            
-           (define (gethas-next? pos)
+           (define (has-next? pos)
              (pos 'has-next?))
            
-           (define (gethas-prev? pos)
+           (define (has-prev? pos)
              (pos 'has-prev?))
            
            (define (duplicate)
@@ -253,7 +257,7 @@
                  (double-linked-position-list ==?)
                  (iter (double-linked-position-list ==?) first)))
            
-           (define (debug-print-complete)
+           (define (print)
              (define (iter pos)
                (pos 'print)
                (display " ")
@@ -291,39 +295,7 @@
            (define (clear!)
              (cleanup-list))
            
-           (define (obj-d-l-position-list msg . args)
-             (case msg
-               ((length) (apply length args))
-               ((full?) (apply full? args))
-               ((empty?) (apply empty? args))
-               ((map) (apply map args))
-               ((map!) (apply map! args))
-               ((for-each) (apply for-each args))
-               ((foldl) (apply foldl args))
-               ((foldr) (apply foldr args))
-               ((first-position) (apply first-position args))
-               ((last-position) (apply last-position args))
-               ((find) (apply find args))
-               ((delete!) (apply delete! args))
-               ((add-before!) (apply add-before! args))
-               ((add-after!) (apply add-after! args))
-               ((clear!) (apply clear! args))
-               ((next) (apply getnext args))
-               ((prev) (apply getprev args))
-               ((value) (apply getval args))
-               ((has-next?) (apply gethas-next? args))
-               ((has-prev?) (apply gethas-prev? args))
-               ((print) (apply debug-print-complete args))
-               ((duplicate) (apply duplicate args))
-               ((to-scheme-list) (apply to-scheme-list args))
-               ((all-true?) (apply all-true? args))
-               ((all-false?) (apply all-false? args))
-               (else (assertion-violation 'double-linked-position-list "message not understood" msg))))
-
-           (if (not (null? lst))
-             (from-scheme-list (car lst)))
-           
-           obj-d-l-position-list)
+           )
          
          
          ; Makes the type of position list selectable by load

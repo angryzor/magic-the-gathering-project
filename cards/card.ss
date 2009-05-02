@@ -5,6 +5,7 @@
  (export card
          card-action)
  (import (rnrs base (6))
+         (rnrs io simple)
          (magic double-linked-position-list)
          (magic object)
          (magic cards card-action))
@@ -12,8 +13,8 @@
  ; Code
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
-   (get-name get-color get-cost get-game get-player set-cost! can-play?
-    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
+   (get-name get-color get-cost get-game get-player set-cost! can-play? changed-zone
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! clear-actions! perform-default-action)
    
    (define actions (position-list eq?))
    (define my-zone '())
@@ -61,13 +62,19 @@
      (set! my-zone zone)
      (this 'update-actions))
    (define (get-zone)
-     my-zone))
+     my-zone)
    (define (update-actions)
-     (clear-actions!)
+     (this 'clear-actions!)
      (let* ([p-field (player 'get-field)]
             [phases (game 'get-phases)]
             [c-phase-type (phases 'get-current-type)])
+       (display my-zone)
+       (display c-phase-type)
+       (display (eq? player (game 'get-active-player)))
        (cond ((and (eq? my-zone (p-field 'get-library-zone))
-                   (eq? c-phase-type 'beginning-draw)) (add-action! draw-action)))))
+                   (eq? c-phase-type 'beginning-draw)
+                   (eq? player (game 'get-active-player))) (add-action! draw-action)))))
+   
+   )
  
  )

@@ -5,6 +5,7 @@
  (export player-field
          main-field)
  (import (rnrs base (6))
+         (magic object)
          (magic double-linked-position-list)
          (magic zones))
  
@@ -39,7 +40,9 @@
        (else (assertion-violation 'player-field "message not understood" msg))))
    obj-player-field)
  
- (define (main-field)
+ (define-dispatch-class (main-field)
+   (add-player-field! get-player-fields get-stack-zone to-all)
+   
    (define pfields (position-list eq?))
    (define stack (zone-stack))
    
@@ -56,7 +59,7 @@
      (define (to-all-in-zone zone msg . args)
        (zone 'for-each (lambda (card)
                              (apply card msg args))))
-     (let ([pfields ((game 'get-field) 'get-player-fields)])
+     (let ([pfields (this 'get-player-fields)])
        (pfields 'for-each (lambda (pfield)
                             (apply to-all-in-zone (pfield 'get-in-play-zone) msg args)
                             (apply to-all-in-zone (pfield 'get-hand-zone) msg args)
@@ -65,12 +68,6 @@
                             (apply to-all-in-zone (pfield 'get-library-zone) msg args)))))
 
    
-   (define (obj-main-field msg . args)
-     (case msg
-       ((add-player-field!) (apply add-player-field! args))
-       ((get-player-fields) (apply get-player-fields args))
-       ((get-stack-zone) (apply get-stack-zone args))
-       (else (assertion-violation 'main-field "message not understood" msg))))
-   obj-main-field)
+   )
  
  )
