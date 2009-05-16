@@ -5,12 +5,26 @@
  (export card-permanent)
  (import (rnrs base (6))
          (magic object)
-         (magic cards card))
+         (magic cards card)
+         (magic cards card-action))
 
  ;Class: card-permanent
  (define-dispatch-subclass (card-permanent name color cost game player picture)
-   (play destroy turn-begin phase-begin phase-end turn-end can-play? supports-type? get-type)
+   (play destroy turn-begin phase-begin phase-end turn-end can-play? supports-type? get-type changed-zone)
    (card name color cost game player picture)
+   (init (add-to-action-library! act-play))
+   
+   (define act-play (card-action "Play"
+                                 (lambda ()
+                                   (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
+                                        (eq? (phases 'get-current-type) 'main)
+                                        (eq? player (game 'get-active-player))))
+                                 (lambda ()
+                                   (if ((player 'get-manapool) 'can-afford? cost)
+                                       (begin
+                                         ((super 'get-zone) 'delete-card! this)
+                                         (((player 'get-field) 'get-in-play-zone) 'add-card! this))))))
+                                        
    
    (define (play)
      #f)
@@ -29,6 +43,12 @@
      (or (eq? type card-permanent) (super 'supports-type? type)))
    (define (get-type)
      card-permanent)
+   (define (changed-zone zone)
+     (super 'changed-zone zone)
+     (case zone
+       (( (eq? ((player 'get-field) 'get-in-play-zone) zone) )   (this 'play))
+       (( (eq? ((player 'get-field) 'get-graveyard-zone) zone) ) (this 'destroy))))
+       
    
    (define (can-play?)
      (eq? ((game 'get-phases) 'get-current-type) 'main-phase)

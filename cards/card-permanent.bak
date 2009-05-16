@@ -9,7 +9,7 @@
 
  ;Class: card-permanent
  (define-dispatch-subclass (card-permanent name color cost game player picture)
-   (play destroy turn-begin phase-begin phase-end turn-end can-play? supports-type? get-type)
+   (play destroy turn-begin phase-begin phase-end turn-end can-play? supports-type? get-type changed-zone)
    (card name color cost game player picture)
    
    (define (play)
@@ -29,6 +29,12 @@
      (or (eq? type card-permanent) (super 'supports-type? type)))
    (define (get-type)
      card-permanent)
+   (define (changed-zone zone)
+     (super 'changed-zone zone)
+     (case zone
+       (( (eq? ((player 'get-field) 'get-in-play-zone) zone) )   (this 'play))
+       (( (eq? ((player 'get-field) 'get-graveyard-zone) zone) ) (this 'destroy))))
+       
    
    (define (can-play?)
      (eq? ((game 'get-phases) 'get-current-type) 'main-phase)

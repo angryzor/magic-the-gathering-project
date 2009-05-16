@@ -5,6 +5,7 @@
  (export card
          card-action)
  (import (rnrs base (6))
+         (rnrs io simple)
          (magic double-linked-position-list)
          (magic object)
          (magic cards card-action))
@@ -12,10 +13,15 @@
  ; Code
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
-   (get-name get-color get-cost get-game get-player set-cost! can-play?
-             draw supports-type? get-type get-picture get-actions add-action! remove-action! perform-default-action)
+   (get-name get-color get-cost get-game get-player set-cost! can-play? changed-zone
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! clear-actions! perform-default-action)
    
    (define actions (position-list eq?))
+   (define action-library (position-list eq?))
+   (define my-zone '())
+   
+   (define draw-action (card-action "Draw" (lambda ()
+                                             (player 'draw-card))))
    
    (define (get-name)
      name)
@@ -32,10 +38,8 @@
    (define (can-play?)
      #f) ; you can never play this card.
    (define (draw)
-     #f)
+     (remove-action! draw-action))
    (define (destroy)
-     #f)
-   (define (resurrect)
      #f)
    (define (supports-type? type)
      (eq? type card))
@@ -51,32 +55,27 @@
     (let ([pos (actions 'find action)])
 	  (if pos
        (actions 'delete! action))))
+   (define (clear-actions!)
+     (actions 'clear!))
    (define (perform-default-action)
      #f)
+   (define (changed-zone zone)
+     (set! my-zone zone)
+     (this 'update-actions))
+   (define (get-zone)
+     my-zone)
+   (define (update-actions)
+     (this 'clear-actions!)
+     (let* ([p-field (player 'get-field)]
+            [phases (game 'get-phases)]
+            [c-phase-type (phases 'get-current-type)])
+       (display my-zone)
+       (display c-phase-type)
+       (display (eq? player (game 'get-active-player)))
+       (cond ((and (eq? my-zone (p-field 'get-library-zone))
+                   (eq? c-phase-type 'beginning-draw)
+                   (eq? player (game 'get-active-player))) (add-action! draw-action)))))
    
-   (define (obj-card msg . args)
-     (case msg
-       ((get-name) (apply get-name args))
-       ((get-color) (apply get-color args))
-       ((get-cost) (apply get-cost args))
-       ((get-game) (apply get-game args))
-       ((get-player) (apply get-player args))
-       ((set-cost!) (apply set-cost! args))
-       ((can-play?) (apply can-play? args))
-       ((draw) (apply draw args))
-       ((supports-type?) (apply supports-type? args))
-       ((get-type) (apply get-type args))
-       ((get-picture) (apply get-picture args))
-       ((get-actions) (apply get-actions args))
-       ((add-action!) (apply add-action! args))
-       ((remove-action!) (apply remove-action! args))
-       ((perform-default-action) (apply perform-default-action args))
-       (else (assertion-violation 'card "message not understood" msg))))
-   
-   (define this (extract-this obj-card this-a))
-   
-   obj-card)
-
-
+   )
  
  )

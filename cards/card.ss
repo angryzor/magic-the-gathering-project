@@ -14,13 +14,23 @@
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
    (get-name get-color get-cost get-game get-player set-cost! can-play? changed-zone
-    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! clear-actions! perform-default-action)
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! add-to-action-library! clear-actions! perform-default-action)
+   (init (add-to-action-library! draw-action))
    
    (define actions (position-list eq?))
+   (define action-library (position-list eq?))
    (define my-zone '())
    
-   (define draw-action (card-action "Draw" (lambda ()
-                                             (player 'draw-card))))
+   (define draw-action (card-action "Draw" 
+                                    (lambda ()
+                                      (let* ([p-field (player 'get-field)]
+                                             [phases (game 'get-phases)]
+                                             [c-phase-type (phases 'get-current-type)])
+                                        (and (eq? my-zone (p-field 'get-library-zone))
+                                             (eq? c-phase-type 'beginning-draw)
+                                             (eq? player (game 'get-active-player)))))
+                                    (lambda ()
+                                      (player 'draw-card))))
    
    (define (get-name)
      name)
@@ -54,6 +64,8 @@
     (let ([pos (actions 'find action)])
 	  (if pos
        (actions 'delete! action))))
+   (define (add-to-action-library! action)
+     (actions 'add-after! action))
    (define (clear-actions!)
      (actions 'clear!))
    (define (perform-default-action)
@@ -65,15 +77,9 @@
      my-zone)
    (define (update-actions)
      (this 'clear-actions!)
-     (let* ([p-field (player 'get-field)]
-            [phases (game 'get-phases)]
-            [c-phase-type (phases 'get-current-type)])
-       (display my-zone)
-       (display c-phase-type)
-       (display (eq? player (game 'get-active-player)))
-       (cond ((and (eq? my-zone (p-field 'get-library-zone))
-                   (eq? c-phase-type 'beginning-draw)
-                   (eq? player (game 'get-active-player))) (add-action! draw-action)))))
+     (action-library 'for-each (lambda (action)
+                                 (if (action 'is-valid?)
+                                     (add-action! action)))))
    
    )
  
