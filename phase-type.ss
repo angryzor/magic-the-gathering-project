@@ -29,6 +29,7 @@
    (fsm-state (lambda ()
                 (entry-action)
                 ((game 'get-field) 'to-all 'update-actions)
+                (game 'to-all-players 'set-ready! #f)
                 (to-all-perms 'turn-begin))
               (lambda ()
                 (to-all-perms 'turn-end)
@@ -127,7 +128,7 @@
  (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn))
  (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-cleanup (lambda ()
                                                                                                      ((game 'get-players) 'all-true? (lambda (player)
-                                                                                                                                       (<= (((player 'get-field) 'get-hand-zone) 'size) 7))))))
+                                                                                                                                       (<= (((player 'get-field) 'get-hand-zone) 'length) 7))))))
  
  
   

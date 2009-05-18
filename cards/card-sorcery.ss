@@ -5,7 +5,8 @@
  (export card-sorcery)
  (import (rnrs base (6))
          (magic object)
-         (magic cards card-stackable))
+         (magic cards card-stackable)
+         (magic cards card-action))
 
  ;Class: card-sorcery
  (define-dispatch-subclass (card-sorcery name color cost game player picture)
@@ -16,7 +17,7 @@
                                  "Cast"
                                  (lambda ()
                                    (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
-                                        (eq? (phases 'get-current-type) 'main)
+                                        (eq? ((game 'get-phases) 'get-current-type) 'main)
                                         (eq? player (game 'get-active-player))))
                                  (lambda ()
                                    (if ((player 'get-manapool) 'can-afford? cost)

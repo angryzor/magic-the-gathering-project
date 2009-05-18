@@ -14,7 +14,7 @@
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
    (get-name get-color get-cost get-game get-player set-cost! can-play? changed-zone
-    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! add-to-action-library! clear-actions! perform-default-action)
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! add-to-action-library! clear-actions! perform-default-action get-zone)
    (init (add-to-action-library! draw-action))
    
    (define actions (position-list eq?))
@@ -66,7 +66,7 @@
 	  (if pos
        (actions 'delete! action))))
    (define (add-to-action-library! action)
-     (actions 'add-after! action))
+     (action-library 'add-after! action))
    (define (clear-actions!)
      (actions 'clear!))
    (define (perform-default-action)

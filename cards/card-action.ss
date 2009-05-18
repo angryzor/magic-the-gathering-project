@@ -8,7 +8,7 @@
   ;Class: card-action
  (define-dispatch-class (card-action game description validity-check
                                      action)
-   (get-description perform)
+   (get-description perform is-valid?)
    
    (define (get-description)
      description)
@@ -16,5 +16,6 @@
      (validity-check))
    (define (perform)
      (action)
-     ((game 'get-field) 'to-all 'update-actions)))
+     ((game 'get-field) 'to-all 'update-actions)
+     (game 'update-all-guis)))
  )

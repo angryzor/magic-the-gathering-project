@@ -11,7 +11,8 @@
          (magic player)
          (magic gui-view)
          (magic null-card)
-         (magic tenth-edition))
+         (magic tenth-edition)
+         (magic mana))
  
  (define (game names)
    (define num-players (length names))
@@ -44,6 +45,10 @@
    
    (define (get-phases)
      phases)
+   
+   (define (to-all-players msg . args)
+     (players 'for-each (lambda (player)
+                          (apply player msg args))))
    
    (define (update-all-guis)
      (players 'for-each (lambda (player)

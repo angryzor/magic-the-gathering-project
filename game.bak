@@ -11,14 +11,15 @@
          (magic player)
          (magic gui-view)
          (magic null-card)
-         (magic tenth-edition))
+         (magic tenth-edition)
+         (magic mana))
  
  (define (game names)
    (define num-players (length names))
    
    (define (construct)
      (for-each (lambda (name)
-                 (players 'add-after! (player game field name)))
+                 (players 'add-after! (player obj-game field name)))
                names)
      
      (players 'for-each (lambda (player)
@@ -81,6 +82,7 @@
 (e 'add-card! (card-canopy-spider a c))
 (e 'add-card! (card-forest a c))
 (e 'add-card! (card-forest a c))
+(f 'add-card! (card-forest a c))
 ((c 'get-gui) 'update)
 
 (tr)

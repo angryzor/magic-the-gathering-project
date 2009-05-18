@@ -19,7 +19,7 @@
                                  (lambda ()
                                    (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
                                         (eq? player (game 'get-active-player))
-                                        (eq? player (game 'get-active-player))))
+                                        (this 'can-play?)))
                                  (lambda ()
                                    (if ((player 'get-manapool) 'can-afford? cost)
                                        (begin

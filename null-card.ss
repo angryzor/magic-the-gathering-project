@@ -13,7 +13,7 @@
                   game
                   player
                   "resources/bitmaps/cards/card-back.jpg")])
-     (c 'add-action! (card-action "NULLACTION" (lambda () #t) (lambda () 'ok)))
+     (c 'add-to-action-library! (card-action game "NULLACTION" (lambda () #t) (lambda () 'ok)))
      c))
   (define (no-card game player)
    (card "EMTPY"

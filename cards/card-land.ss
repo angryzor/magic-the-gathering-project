@@ -20,9 +20,9 @@
                                      "Tap: +1 mana"
                                      (lambda ()
                                        (and (eq? (super 'get-zone) ((player 'get-field) 'get-in-play-zone))
-                                         (eq? (phases 'get-current-type) 'beginning-untap)
-                                         (eq? player (game 'get-active-player))
-                                         (not (this 'tapped?))))
+                                            (eq? ((game 'get-phases) 'get-current-type) 'main)
+                                            (eq? player (game 'get-active-player))
+                                            (not (this 'tapped?))))
                                      (lambda ()
                                        (super 'tap!)
                                        ((player 'get-manapool) 'add! (mana-list (mana-unit color))))))

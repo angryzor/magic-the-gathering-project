@@ -24,7 +24,9 @@
                          (eq? (y 'get-color) 'colorless))))
  
  (define (mana-list . lst)
-   (position-list manacheck lst))
+   (let ([l (position-list manacheck)])
+     (l 'from-scheme-list lst)
+     l))
  
  (define (manapool)
    (define cache (mana-list))
