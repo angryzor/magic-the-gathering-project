@@ -14,7 +14,8 @@
    (card name color cost game player picture)
    (init (add-to-action-library! act-play))
    
-   (define act-play (card-action "Play"
+   (define act-play (card-action game
+                                 "Play"
                                  (lambda ()
                                    (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
                                         (eq? (phases 'get-current-type) 'main)

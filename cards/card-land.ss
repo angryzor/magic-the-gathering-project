@@ -13,11 +13,16 @@
  (define-dispatch-subclass (card-land name color game player picture)
    (perform-default-action supports-type? get-type)
    (card-tappable name color (mana-list) game player picture)
+   (init (super 'add-to-action-library! tap-for-mana))
    ; Actions:
    ; This card can be tapped for mana. This is the default action.
-   (define tap-for-mana (card-action "Tap: +1 mana"
+   (define tap-for-mana (card-action game
+                                     "Tap: +1 mana"
                                      (lambda ()
-                                       (not (this 'tapped?)))
+                                       (and (eq? (super 'get-zone) ((player 'get-field) 'get-in-play-zone))
+                                         (eq? (phases 'get-current-type) 'beginning-untap)
+                                         (eq? player (game 'get-active-player))
+                                         (not (this 'tapped?))))
                                      (lambda ()
                                        (super 'tap!)
                                        ((player 'get-manapool) 'add! (mana-list (mana-unit color))))))

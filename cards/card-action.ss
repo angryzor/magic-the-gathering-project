@@ -6,7 +6,7 @@
          (magic object))
  
   ;Class: card-action
- (define-dispatch-class (card-action description validity-check
+ (define-dispatch-class (card-action game description validity-check
                                      action)
    (get-description perform)
    
@@ -15,5 +15,6 @@
    (define (is-valid?)
      (validity-check))
    (define (perform)
-     (action)))
+     (action)
+     ((game 'get-field) 'to-all 'update-actions)))
  )

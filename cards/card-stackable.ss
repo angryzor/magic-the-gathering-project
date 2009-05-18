@@ -17,6 +17,11 @@
    (define (cast)
      #f)
    
+   (define (changed-zone zone)
+     (super 'changed-zone zone)
+     (case zone
+       (( (eq? ((player 'get-field) 'get-stack-zone) zone) )   (this 'play))))
+
    (define (supports-type? type)
      (or (eq? type card-stackable) (super 'supports-type? type)))
    (define (get-type)

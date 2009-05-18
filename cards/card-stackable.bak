@@ -8,7 +8,7 @@
          (magic cards card))
 
  ;Class: card-stackable
- (define (card-stackable name color cost game player picture . this-a)
+ (define-dispatch-subclass (card-stackable name color cost game player picture)
    (play cast supports-type? get-type)
    (card name color cost game player picture)
    

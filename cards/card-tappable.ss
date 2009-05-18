@@ -10,21 +10,13 @@
  (define-dispatch-subclass (card-tappable name color cost game player picture)
    (tapped? tap! untap! supports-type? get-type)
    (card-permanent name color cost game player picture)
-   (init (super 'add-to-action-library act-tap)
-         (super 'add-to-action-library act-untap))
+   (init (super 'add-to-action-library act-untap))
    
-   (define act-tap (card-action "Tap"
-                                (lambda ()
-                                  (and (eq? (super 'get-zone) ((player 'get-field) 'get-in-play-zone))
-                                       (eq? (phases 'get-current-type) 'main)
-                                       (eq? player (game 'get-active-player))
-                                       (not (this 'tapped?))))
-                                (lambda ()
-                                  (this 'tap!))))
-   (define act-untap (card-action "Untap"
+   (define act-untap (card-action game
+                                  "Untap"
                                   (lambda ()
                                     (and (eq? (super 'get-zone) ((player 'get-field) 'get-in-play-zone))
-                                         (eq? (phases 'get-current-type) 'main)
+                                         (eq? (phases 'get-current-type) 'beginning-untap)
                                          (eq? player (game 'get-active-player))
                                          (this 'tapped?)))
                                   (lambda ()

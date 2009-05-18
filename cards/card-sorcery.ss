@@ -12,6 +12,18 @@
    (can-play? supports-type? get-type)
    (card-stackable name color cost game player picture)
         
+   (define act-cast (card-action game
+                                 "Cast"
+                                 (lambda ()
+                                   (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
+                                        (eq? (phases 'get-current-type) 'main)
+                                        (eq? player (game 'get-active-player))))
+                                 (lambda ()
+                                   (if ((player 'get-manapool) 'can-afford? cost)
+                                       (begin
+                                         ((super 'get-zone) 'delete-card! this)
+                                         (((game 'get-field) 'get-stack-zone) 'push! this))))))
+
    (define (can-play?)
      (and (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
           (eq? (game 'get-active-player) player)))

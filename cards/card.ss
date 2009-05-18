@@ -21,7 +21,8 @@
    (define action-library (position-list eq?))
    (define my-zone '())
    
-   (define draw-action (card-action "Draw" 
+   (define draw-action (card-action game
+                                    "Draw" 
                                     (lambda ()
                                       (let* ([p-field (player 'get-field)]
                                              [phases (game 'get-phases)]
