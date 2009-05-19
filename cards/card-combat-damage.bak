@@ -11,7 +11,7 @@
 
  (define-dispatch-subclass (card-virtual-blocked-combat-damage for-creature to-creature)
    (cast)
-   (card-stackable (for-creature 'get-name)
+   (card-stackable (string-append (for-creature 'get-name) " - Combat damage to " (to-creature 'get-name))
                                  (for-creature 'get-color)
                                  (mana-list)
                                  (for-creature 'get-game)
@@ -21,9 +21,9 @@
    (define (cast)
      (to-creature 'set-health! (- (to-creature 'get-health) (for-creature 'get-power)))))
  
- (define (card-virtual-direct-combat-damage for-creature to-player)
+ (define-dispatch-subclass (card-virtual-direct-combat-damage for-creature to-player)
    (cast)
-   (card-stackable (for-creature 'get-name)
+   (card-stackable (string-append (for-creature 'get-name) " - Combat damage to " (to-creature 'get-name))
                                  (for-creature 'get-color)
                                  (mana-list)
                                  (for-creature 'get-game)

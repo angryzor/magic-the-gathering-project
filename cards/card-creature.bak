@@ -11,14 +11,15 @@
          (magic cards card-action))
 
  ;Class: card-creature
- (define (card-creature name color cost game player power toughness picture attr-lst)
+ (define-dispatch-subclass (card-creature name color cost game player power toughness picture attr-lst)
    (deal-damage can-block? turn-end get-power set-power! get-toughness
     set-toughness! get-health set-health! is-blocked! attacks! get-special-attributes 
     has-special-attribute? add-special-attribute! remove-special-attribute! supports-type? get-type)
    (card-tappable name color cost game player picture)
+   (init (special-attribs 'from-scheme-list attr-lst))
    
    (define health toughness)
-   (define special-attribs (position-list eq? attr-lst))
+   (define special-attribs (position-list eq?))
    
    (define blocker #f)
    (define attacks #f)
@@ -89,6 +90,7 @@
      (or (eq? type card-creature) (super 'supports-type? type)))
    (define (get-type)
      card-creature))
+ )
 
 ;   (super 'add-action! (card-action "Attack"
 ;                                    (lambda ()

@@ -51,6 +51,7 @@
     'ok)
   
   (define (wait-for-card-selection msg proc)
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " msg))
     (set! proc-to-ex-on-crd-sel proc))
   
   (define (waiting-for-card?)
@@ -58,7 +59,8 @@
   
   (define (found-card card)
     (proc-to-ex-on-crd-sel card)
-    (set! proc-to-ex-on-crd-sel #f))
+    (set! proc-to-ex-on-crd-sel #f)
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name))))
   
   (define (wait-for-player-selection msg proc)
     (let* ([dlg (new dialog% [label "Select a player"]
@@ -94,8 +96,3 @@
   
   obj-gui-view)
 
-(define-syntax gui-card-let
-  (syntax-rules ()
-    [(_ gui-ref msg () inner ...) (begin inner ...)]
-    [(_ gui-ref msg (variable1 othervariables ...) inner ...) (gui-card-let 'wait-for-card-selection msg (lambda (variable1)
-                                                                                                           (guiblah gui-ref msg (othervariables ...) inner ...)))]))

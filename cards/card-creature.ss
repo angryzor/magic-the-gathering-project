@@ -8,7 +8,8 @@
          (magic cards card-combat-damage)
          (magic cards card-tappable)
          (magic object)
-         (magic cards card-action))
+         (magic cards card-action)
+         (magic gui-util))
 
  ;Class: card-creature
  (define-dispatch-subclass (card-creature name color cost game player power toughness picture attr-lst)
@@ -16,9 +17,30 @@
     set-toughness! get-health set-health! is-blocked! attacks! get-special-attributes 
     has-special-attribute? add-special-attribute! remove-special-attribute! supports-type? get-type)
    (card-tappable name color cost game player picture)
+   (init (special-attribs 'from-scheme-list attr-lst)
+         (super 'add-to-action-library! (card-action game
+                                                     "Attack"
+                                                     (lambda ()
+                                                       (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
+                                                            (eq? player (game 'get-active-player))))
+                                                     (lambda ()
+                                                       (gui-player-let (player 'get-gui) "Select a player to attack"
+                                                         (player)
+                                                         (set! attacksplayer player)
+                                                         (attacks!)))))
+         (super 'add-to-action-library! (card-action game
+                                                     "Block"
+                                                     (lambda ()
+                                                       (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
+                                                            (not (eq? player (game 'get-active-player)))))
+                                                     (lambda ()
+                                                       (gui-card-let (player 'get-gui) "Select the card that you wish to block"
+                                                         (c1)
+                                                         (c1 'is-blocked! this))))))
    
+   (define attacksplayer #f)
    (define health toughness)
-   (define special-attribs (position-list eq? attr-lst))
+   (define special-attribs (position-list eq?))
    
    (define blocker #f)
    (define attacks #f)
@@ -35,10 +57,7 @@
      (if attacks
          (if blocker
              (damage-creature)
-             (damage-player (let* ([players (game 'get-players)]
-                                   [pos (players 'first-position)]
-                                   [anopponentpos (players 'next pos)]) ; need to do this better (have choice)
-                              (players 'value anopponentpos))))))
+             (damage-player player))))
    
    (define (damage-player player)
      (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this player)))
@@ -91,16 +110,3 @@
      card-creature))
  )
 
-;   (super 'add-action! (card-action "Attack"
-;                                    (lambda ()
-;                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
-;                                           (eq? player (game 'get-active-player))))
-;                                    (lambda ()
-;                                      (attacks!))))
-;   (super 'add-action! (card-action "Block"
-;                                    (lambda ()
-;                                      (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
-;                                           (not (eq? player (game 'get-active-player)))))
-;                                    (lambda ()
-;                                    ;  ((gui 'wait-for-target-card-selection) 'is-blocked! this)
-;                                      'ok)))
