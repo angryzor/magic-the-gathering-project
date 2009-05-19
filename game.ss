@@ -63,6 +63,7 @@
        ((next-turn!) (apply next-turn! args))
        ((get-phases) (apply get-phases args))
        ((update-all-guis) (apply update-all-guis args))
+       ((to-all-players) (apply to-all-players args))
        (else (assertion-violation 'game "message not understood" msg))))
    (define field (main-field))
    (define players (position-list eq?))

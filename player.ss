@@ -5,6 +5,7 @@
  (player)
  (export player)
  (import (rnrs base (6))
+         (rnrs io simple)
          (magic mana)
          (magic fields))
  
@@ -46,7 +47,10 @@
      my-field)
    
    (define (set-ready! val)
-     (set! is-ready val))
+     (set! is-ready val)
+     ((game 'get-phases) 'transition)
+     (display "DEBUG: ")
+     (display ((game 'get-phases) 'get-current-type)))
    
    (define (ready?)
      is-ready)
