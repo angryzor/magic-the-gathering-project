@@ -61,29 +61,33 @@
     (set! proc-to-ex-on-crd-sel #f))
   
   (define (wait-for-player-selection msg proc)
-    (let* ([dlg (new dialog% [label "Select a player"])]
+    (let* ([dlg (new dialog% [label "Select a player"]
+                             [parent my-main-frame])]
            [players (game 'get-players)]
            [plyrs (players 'to-vector)])
       (new message% [label msg]
                     [parent dlg])
-      (new choice% [label "Player: "]
+      (let ([c (new choice% [label "Player: "]
                    [parent dlg]
                    [choices ((players 'map (lambda (player)
-                                             (player 'get-name)) eqv?) 'to-scheme-list)])
-      (new button% [label "OK"]
-                   [parent dlg]
-                   [callback (lambda (i e)
-                               (proc (vector-ref plyrs (send i get-selection))))])
-      (send dlg show #t)))
+                                             (player 'get-name)) eqv?) 'foldr (lambda (res val)
+                                                                                (cons val res)) '())])])
+        (new button% [label "OK"]
+             [parent dlg]
+             [callback (lambda (i e)
+                         (send dlg show #f)
+                         (proc (vector-ref plyrs (send c get-selection))))])
+        (send dlg show #t))))
   
   (define (obj-gui-view msg . args)
     (case msg
       ((update) (apply update args))
       ((close) (apply close args))
       ((wait-for-card-selection) (apply wait-for-card-selection args))
+      ((wait-for-player-selection) (apply wait-for-player-selection args))
       ((waiting-for-card?) (apply waiting-for-card? args))
       ((found-card) (apply found-card args))
-      (else (error 'obj-gui-view "message not understood" msg))))
+      (else (error 'obj-gui-view "message not understood: ~S" msg))))
   
   (prepare-layout)
   (send my-main-frame show #t)

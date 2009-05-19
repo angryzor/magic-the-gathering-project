@@ -17,13 +17,19 @@
      (inherit-field card)
      
      (inherit refresh)
+     (inherit reload-pic)
      
      (define/public (update)
-       (set! card (let ([lib ((player 'get-field) 'get-library-zone)])
-                    (if (lib 'empty?)
-                        (no-card game player)
-                        (lib 'top))))
-       (refresh))
+       (let ([new-card (let ([lib ((player 'get-field) 'get-library-zone)])
+                         (if (lib 'empty?)
+                             (no-card game player)
+                             (lib 'top)))])
+         (unless (or (and (card 'supports-type? no-card)
+                          (new-card 'supports-type? no-card))
+                     (eq? card new-card))
+           (set! card new-card)
+           (reload-pic)
+           (refresh))))
      
      (super-new)))
  
@@ -35,13 +41,19 @@
      (inherit-field card)
      
      (inherit refresh)
+     (inherit reload-pic)
      
      (define/public (update)
-       (set! card (let ([grv ((player 'get-field) 'get-graveyard-zone)])
-                    (if (grv 'empty?)
-                        (no-card game player)
-                        (grv 'top))))
-       (refresh))
+       (let ([new-card (let ([grv ((player 'get-field) 'get-graveyard-zone)])
+                         (if (grv 'empty?)
+                             (no-card game player)
+                             (grv 'top)))])
+       (unless (or (and (card 'supports-type? no-card)
+                          (new-card 'supports-type? no-card))
+                     (eq? card new-card))
+           (set! card new-card)
+           (reload-pic)
+           (refresh))))
      
      (super-new)))
  

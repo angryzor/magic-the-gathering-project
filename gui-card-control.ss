@@ -11,19 +11,25 @@
     (init-field view)
     (init [paint-callback (lambda () 'ok)])
     
-;    (define pic (make-object bitmap% (card 'get-picture)))
+    (define pic (make-object bitmap% (card 'get-picture)))
     
     (define/override (on-event event)
       (when (and (send event button-up? 'left)
-                 (view 'wainting-for-card?))
+                 (view 'waiting-for-card?))
         (view 'found-card card)))
+    
+    (define/public (reload-pic)
+      (display "reloading!")
+      (display (card 'get-picture))
+      (newline)
+      (set! pic (make-object bitmap% (card 'get-picture))))
     
     (super-new [min-width CARD-WIDTH]
                [min-height CARD-HEIGHT]
                [stretchable-width #f]
                [stretchable-height #f]
                [paint-callback (lambda (inst dc)
-                                 (send dc draw-bitmap (make-object bitmap% (card 'get-picture)) 0 0)
+                                 (send dc draw-bitmap pic 0 0) ;(make-object bitmap% (card 'get-picture)) 0 0)
                                  (when (and (card 'supports-type? card-tappable)
                                             (card 'tapped?))
                                    (send dc set-text-foreground (make-object color% 255 255 255))

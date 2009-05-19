@@ -64,10 +64,6 @@
                                                                        [view view]) newlist))))
                             newlist))))
      
-     (define/public (wait-for-target-card-selection)
-       (for-each (lambda (child)
-                   (send child wait-for-target-card-selection)) (get-children)))
-     
      (super-new)))
  
  (define gui-in-play%
@@ -122,10 +118,4 @@
        (send ip update)
        (send hand update)
        (send lib update)
-       (send grave update))
-     
-     (define/public (wait-for-target-card-selection)
-       (send ip wait-for-target-card-selection)
-       (send hand wait-for-target-card-selection)
-       (send lib wait-for-target-card-selection)
-       (send grave wait-for-target-card-selection))))
+       (send grave update))))

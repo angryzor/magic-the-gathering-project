@@ -9,6 +9,7 @@
          zone-in-play)
  (import (rnrs base (6))
          (rnrs io simple)
+         (only (scheme base) random)
          (magic object)
          (magic double-linked-position-list)
          (magic cards))

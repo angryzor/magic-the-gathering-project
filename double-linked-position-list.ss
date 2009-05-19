@@ -29,7 +29,7 @@
 
 (library (position-list)
          (export position-list)
-         (import (rnrs base (6))
+         (import (rename (rnrs base (6)) (for-each scheme-for-each))
                  (rnrs io simple)
                  (magic object))
          
@@ -159,9 +159,9 @@
                vec))
            (define (from-scheme-list lst)
              (clear!)
-             (if (not (null? lst))
-                 (begin (add-after! (car lst))
-                        (from-scheme-list (cdr lst)))))
+             (scheme-for-each (lambda (x)
+                         (add-after! x))
+                        lst))
            (define (length)
              size)
            (define (full?)

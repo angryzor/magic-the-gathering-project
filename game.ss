@@ -80,6 +80,7 @@
 (define a (game '("Ruben" "Sander")))
 (define b (a 'get-players))
 (define c (b 'value (b 'first-position)))
+(define g (b 'value (b 'next (b 'first-position))))
 (define d (c 'get-field))
 (define e (d 'get-hand-zone))
 (define f (d 'get-library-zone))
@@ -89,6 +90,7 @@
 (e 'add-card! (card-forest a c))
 (f 'add-card! (card-forest a c))
 ((c 'get-gui) 'update)
+((g 'get-gui) 'update)
 
 (tr)
 
