@@ -74,7 +74,20 @@
    (zone-stacklike)
    
    (define (shuffle)
-     #f)
+    (define (knuth_shuffle vec)
+      (define (knuth_shuffle_inner vec n)
+        (if (< n 1)
+            vec
+            (let ((k (random (+ n 1))))
+              (if (not (= k n))
+                  (let ((tmp (vector-ref vec k)))
+                    (vector-set! vec k (vector-ref vec n))
+                    (vector-set! vec n tmp)))
+              (knuth_shuffle_inner vec (- n 1)))))
+      (knuth_shuffle_inner vec (- (vector-length vec) 1)))
+    (this 'from-vector 
+     (knuth_shuffle
+      (this 'to-vector))))
    
    (define (draw)
      (super 'pop!)))

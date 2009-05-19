@@ -10,7 +10,7 @@
 (define (gui-view player game)
   (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))
   (define pkgs (position-list eq?))
-  (define selected-card #f)
+  (define proc-to-ex-on-crd-sel #f)
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
@@ -50,26 +50,38 @@
   (define (close)
     'ok)
   
-  (define (wait-for-target-card-selection)
-    (define (loop)
-      (unless selected-card
-        (sleep 0.01)
-        (loop)))
-    (pkgs 'for-each (lambda (pkg)
-                      (send pkg wait-for-target-card-selection)))
-    (loop)
-    (let ([res selected-card])
-      (set! selected-card #f)
-      res))
+  (define (wait-for-card-selection msg proc)
+    (set! proc-to-ex-on-crd-sel proc))
+  
+  (define (waiting-for-card?)
+    proc-to-ex-on-crd-sel)
   
   (define (found-card card)
-    (set! selected-card card))
+    (proc-to-ex-on-crd-sel card)
+    (set! proc-to-ex-on-crd-sel #f))
+  
+  (define (wait-for-player-selection msg proc)
+    (let* ([dlg (new dialog% [label "Select a player"])]
+           [players (game 'get-players)]
+           [plyrs (players 'to-vector)])
+      (new message% [label msg]
+                    [parent dlg])
+      (new choice% [label "Player: "]
+                   [parent dlg]
+                   [choices ((players 'map (lambda (player)
+                                             (player 'get-name)) eqv?) 'to-scheme-list)])
+      (new button% [label "OK"]
+                   [parent dlg]
+                   [callback (lambda (i e)
+                               (proc (vector-ref plyrs (send i get-selection))))])
+      (send dlg show #t)))
   
   (define (obj-gui-view msg . args)
     (case msg
       ((update) (apply update args))
       ((close) (apply close args))
-      ((wait-for-target-card-selection) (apply wait-for-target-card-selection args))
+      ((wait-for-card-selection) (apply wait-for-card-selection args))
+      ((waiting-for-card?) (apply waiting-for-card? args))
       ((found-card) (apply found-card args))
       (else (error 'obj-gui-view "message not understood" msg))))
   
@@ -77,3 +89,9 @@
   (send my-main-frame show #t)
   
   obj-gui-view)
+
+(define-syntax gui-card-let
+  (syntax-rules ()
+    [(_ gui-ref msg () inner ...) (begin inner ...)]
+    [(_ gui-ref msg (variable1 othervariables ...) inner ...) (gui-card-let 'wait-for-card-selection msg (lambda (variable1)
+                                                                                                           (guiblah gui-ref msg (othervariables ...) inner ...)))]))

@@ -36,7 +36,7 @@
          (define-dispatch-class (double-linked-position-list ==?)
            (length full? empty? map map! for-each foldl foldr first-position last-position
             find delete! add-before! add-after! clear! next prev value has-next? has-prev?
-            print duplicate from-scheme-list to-scheme-list all-true? all-false?)
+            print duplicate from-scheme-list to-scheme-list all-true? all-false? from-vector to-vector)
            (define (double-linked-position prev next val)
              (define (has-prev?)
                (not (null? prev)))
@@ -143,7 +143,22 @@
            
            ; Public functions
            
+           (define (from-vector vec)
+             (clear!)
+             (vector-for-each (lambda (elm)
+                                (add-after! elm))
+                              vec))
+           (define (to-vector)
+             (let ([vec (make-vector (length) '())])
+               (define (iter thispos curi)
+                 (vector-set! vec curi (thispos 'value))
+                 (if (thispos 'has-next?)
+                     (iter (thispos 'next) (+ 1 curi))))
+               (if (not (empty?))
+                   (iter first 0))
+               vec))
            (define (from-scheme-list lst)
+             (clear!)
              (if (not (null? lst))
                  (begin (add-after! (car lst))
                         (from-scheme-list (cdr lst)))))

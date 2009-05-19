@@ -10,7 +10,7 @@
 (require (lib "null-card.ss" "magic"))
  
  (define gui-library%
-   (class gui-card-control%
+   (class gui-card-with-actions-control%
      (init-field game)
      (init-field player)
      

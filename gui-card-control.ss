@@ -13,14 +13,9 @@
     
 ;    (define pic (make-object bitmap% (card 'get-picture)))
     
-    (field [selection-pending #f])
-    (define/public (wait-for-target-card-selection)
-      (set! selection-pending #t))
-    
     (define/override (on-event event)
       (when (and (send event button-up? 'left)
-                 selection-pending)
-        (set! selection-pending #f)
+                 (view 'wainting-for-card?))
         (view 'found-card card)))
     
     (super-new [min-width CARD-WIDTH]
@@ -40,13 +35,13 @@
 (define gui-card-with-actions-control%
   (class gui-card-control%
     (inherit-field card)
-    (inherit-field selection-pending)
+    (inherit-field view)
     (inherit popup-menu)
     
     ; Show list of actions on rightclick
     (define/override (on-event event)
-      (when (not selection-pending)
-        (cond ((send event button-up? 'right) (let ([acts (card 'get-actions)])
+        (cond ((view 'waiting-for-card?) (view 'found-card card))
+              ((send event button-up? 'right) (let ([acts (card 'get-actions)])
                                                 (unless (acts 'empty?)
                                                   (let ([menu (new popup-menu% [title "Action menu"])])
                                                     (acts 'for-each (lambda (action)
@@ -56,7 +51,6 @@
                                                                                        (action 'perform))])))
                                                     (popup-menu menu (send event get-x) (send event get-y))))))
               ((send event button-up? 'left) (card 'perform-default-action))))
-      (super on-event event))
     
     (super-new)))
                                                                   

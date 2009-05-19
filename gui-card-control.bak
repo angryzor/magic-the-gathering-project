@@ -13,14 +13,9 @@
     
 ;    (define pic (make-object bitmap% (card 'get-picture)))
     
-    (field [selection-pending #f])
-    (define/public (wait-for-target-card-selection)
-      (set! selection-pending #t))
-    
     (define/override (on-event event)
       (when (and (send event button-up? 'left)
-                 selection-pending)
-        (set! selection-pending #f)
+                 (view 'wainting-for-card?))
         (view 'found-card card)))
     
     (super-new [min-width CARD-WIDTH]
@@ -50,11 +45,10 @@
                                                 (unless (acts 'empty?)
                                                   (let ([menu (new popup-menu% [title "Action menu"])])
                                                     (acts 'for-each (lambda (action)
-                                                                      (when (action 'is-valid?)
-                                                                        (new menu-item% [parent menu]
-                                                                             [label (action 'get-description)]
-                                                                             [callback (lambda (i e)
-                                                                                         (action 'perform))]))))
+                                                                      (new menu-item% [parent menu]
+                                                                           [label (action 'get-description)]
+                                                                           [callback (lambda (i e)
+                                                                                       (action 'perform))])))
                                                     (popup-menu menu (send event get-x) (send event get-y))))))
               ((send event button-up? 'left) (card 'perform-default-action))))
       (super on-event event))

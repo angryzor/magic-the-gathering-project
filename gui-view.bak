@@ -5,11 +5,12 @@
 (require (lib "card-dimensions.ss" "magic"))
 (require (lib "gui-elements.ss" "magic"))
 (require (lib "double-linked-position-list.ss" "magic"))
+(require (lib "object.ss" "magic"))
 
 (define (gui-view player game)
   (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))
   (define pkgs (position-list eq?))
-  (define selected-card #f)
+  (define proc-to-ex-on-crd-sel #f)
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
@@ -49,26 +50,21 @@
   (define (close)
     'ok)
   
-  (define (wait-for-target-card-selection)
-    (define (loop)
-      (unless selected-card
-        (sleep 0.01)
-        (loop)))
-    (pkgs 'for-each (lambda (pkg)
-                      (send pkg wait-for-target-card-selection)))
-    (loop)
-    (let ([res selected-card])
-      (set! selected-card #f)
-      res))
+  (define (wait-for-card-selection proc)
+    (set! proc-to-ex-on-crd-sel proc))
+  
+  (define (waiting-for-card?)
+    proc-to-ex-on-crd-sel)
   
   (define (found-card card)
-    (set! selected-card card))
+    (proc-to-ex-on-crd-sel card)
+    (set! proc-to-ex-on-crd-sel #f))
   
   (define (obj-gui-view msg . args)
     (case msg
       ((update) (apply update args))
       ((close) (apply close args))
-      ((wait-for-target-card-selection) (apply wait-for-target-card-selection args))
+      ((wait-for-card-selection) (apply wait-for-card-selection args))
       ((found-card) (apply found-card args))
       (else (error 'obj-gui-view "message not understood" msg))))
   
