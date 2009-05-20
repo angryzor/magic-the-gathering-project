@@ -91,6 +91,8 @@
 (e 'add-card! (card-island a c))
 (e 'add-card! (card-forest a c))
 (f 'add-card! (card-forest a c))
+(f 'add-card! (card-canopy-spider a c))
+(f 'add-card! (card-canopy-spider a c))
 (f 'add-card! (card-forest a c))
 (f 'add-card! (card-canopy-spider a c))
 ;((deck-arcanis-guile) 'give-to c a)

@@ -117,13 +117,14 @@
   (define (wait-reorder-cards msg cards)
     (define src #f)
     (define btn '())
+    (define cl '())
     (define (handler i e)
       (if src
           (let ([cardpos (cards 'find src)]
                 [newcardpos (cards 'find (send i get-card))])
             (cards 'delete! cardpos)
-            (cards 'add-before! cardpos newcardpos)
-            (send i update)
+            (cards 'add-before! src newcardpos)
+            (send cl update)
             (set! src #f)
             (send btn enable #t))
           (begin
@@ -133,17 +134,17 @@
                              [parent my-main-frame])])
       (new message% [label msg]
                     [parent dlg])
-      (let ([cl (new gui-card-list-view% [parent dlg]
-                                         [src cards]
-                                         [player player]
-                                         [view obj-gui-view]
-                                         [card-control-constructor (lambda (parent card view)
-                                                                     (new gui-card-choice-control%
-                                                                          [parent parent]
-                                                                          [card card]
-                                                                          [view view]
-                                                                          [callback handler]))])])
-        (send cl update))
+      (set! cl (new gui-card-list-view% [parent dlg]
+                                        [src cards]
+                                        [player player]
+                                        [view obj-gui-view]
+                                        [card-control-constructor (lambda (parent card view)
+                                                                    (new gui-card-choice-control%
+                                                                         [parent parent]
+                                                                         [card card]
+                                                                         [view view]
+                                                                         [callback handler]))]))
+      (send cl update)
       (set! btn (new button% [label "OK"]
                              [parent dlg]
                              [callback (lambda (i e)

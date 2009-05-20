@@ -13,7 +13,7 @@
                   '()
                   game
                   player
-                  "resources/bitmaps/cards/card-back.jpg")])
+                  "card-back.jpg")])
      (c 'add-to-action-library! (card-action game "NULLACTION" (lambda () #t) (lambda () 'ok)))
      c))
   (define-dispatch-subclass (no-card game player)
@@ -23,7 +23,7 @@
          '()
          game
          player
-         "resources/bitmaps/surface/cardslot.png")
+         "../surface/cardslot.png")
     (define (supports-type? type)
       (or (eq? type no-card) (super 'supports-type? type)))
     (define (get-type)

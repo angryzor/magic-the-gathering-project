@@ -88,11 +88,15 @@
      (super 'play)
      (let ([lib ((player 'get-field) 'get-library-zone)]
            [tmplst (position-list eq?)])
-       (tmplst 'add-before! (lib 'pop!))
-       (tmplst 'add-before! (lib 'pop!))
-       (tmplst 'add-before! (lib 'pop!))
-       (tmplst 'add-before! (lib 'pop!))
-       ((player 'get-gui) 'wait-reorder-cards "Reorder the first 4 cards of your library." tmplst)))
+       (let loop ([n 4])
+         (if (and (> n 0)
+                  (not (lib 'empty?)))
+             (begin
+               (tmplst 'add-before! (lib 'pop!))
+               (loop (- n 1)))))
+       ((player 'get-gui) 'wait-reorder-cards "Reorder the first 4 cards of your library." tmplst)
+       (tmplst 'for-each (lambda (card)
+                           (lib 'push! card)))))
    )
  
  

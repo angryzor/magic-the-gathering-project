@@ -26,7 +26,7 @@
       (display "reloading!")
       (display (card 'get-picture))
       (newline)
-      (set! pic (make-object bitmap% (card 'get-picture))))
+      (set! pic (make-object bitmap% (string-append "resources/bitmaps/cards/" (card 'get-picture)))))
     
     (super-new [min-width CARD-WIDTH]
                [min-height CARD-HEIGHT]
@@ -40,7 +40,10 @@
                                    (send dc set-text-background (make-object color% 0 0 0))
                                    (send dc set-text-mode 'solid)
                                    (send dc draw-text "TAPPED" 0 0))
-                                 (paint-callback))])))
+                                 (paint-callback))])
+    (display "Constructed. (pic loaded): ")
+    (display (card 'get-picture))
+    (newline)))
 
 (define gui-card-with-actions-control%
   (class gui-card-control%
