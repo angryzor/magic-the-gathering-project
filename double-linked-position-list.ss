@@ -36,7 +36,7 @@
          (define-dispatch-class (double-linked-position-list ==?)
            (length full? empty? map map! for-each foldl foldr first-position last-position
             find delete! add-before! add-after! clear! next prev value has-next? has-prev?
-            print duplicate from-scheme-list to-scheme-list all-true? all-false? from-vector to-vector)
+            print duplicate from-scheme-list to-scheme-list all-true? all-false? from-vector to-vector sublist)
            (define (double-linked-position prev next val)
              (define (has-prev?)
                (not (null? prev)))
@@ -311,6 +311,16 @@
            (define (clear!)
              (cleanup-list))
            
+           (define (sublist from n)
+             (let ([new (position-list ==?)])
+               (define (iter n pos)
+                 (new 'add-after! (value pos))
+                 (if (and (> n 1)
+                          (has-next? pos))
+                     (iter (- n 1) (next pos))))
+               (if (not (empty?))
+                   (iter n from))
+               new))
            )
          
          

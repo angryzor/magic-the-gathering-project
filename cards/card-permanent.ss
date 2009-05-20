@@ -27,6 +27,9 @@
                                         
    
    (define (play)
+     (display "Playing card: ")
+     (display (this 'get-name))
+     (newline)
      #f)
    (define (destroy)
      #f)
@@ -45,8 +48,8 @@
      card-permanent)
    (define (changed-zone zone)
      (super 'changed-zone zone)
-     (case zone
-       (( (eq? ((player 'get-field) 'get-graveyard-zone) zone) ) (this 'destroy))))
+     (cond ((eq? ((player 'get-field) 'get-in-play-zone) zone) (this 'play))
+           ((eq? ((player 'get-field) 'get-graveyard-zone) zone) (this 'destroy))))
        
    
    (define (can-play?)

@@ -10,19 +10,27 @@
  
  (define gui-library%
    (class gui-top-down-stack-zone-view%
-     (super-new [src ((player 'get-field) 'get-library-zone)])))
+     (init player)
+     (super-new [src ((player 'get-field) 'get-library-zone)]
+                [player player])))
  
  (define gui-graveyard%
    (class gui-top-down-stack-zone-view%
-     (super-new [src ((player 'get-field) 'get-graveyard-zone)])))
+     (init player)
+     (super-new [src ((player 'get-field) 'get-graveyard-zone)]
+                [player player])))
  
  (define gui-hand%
    (class gui-card-list-view%
-     (super-new [src ((player 'get-field) 'get-hand-zone)])))
+     (init player)
+     (super-new [src ((player 'get-field) 'get-hand-zone)]
+                [player player])))
  
  (define gui-in-play%
    (class gui-card-list-view%
-     (super-new [src ((player 'get-field) 'get-in-play-zone)])))
+     (init player)
+     (super-new [src ((player 'get-field) 'get-in-play-zone)]
+                [player player])))
  
  (define gui-player-package%
    (class vertical-pane%
@@ -43,12 +51,10 @@
                                  [stretchable-width #t]
                                  [view view]))
      (define lib (new gui-library% [parent handlevel]
-                                   [card (null-card game player)]
                                    [game game]
                                    [player player]
                                    [view view]))
      (define grave (new gui-graveyard% [parent handlevel]
-                                       [card (null-card game player)]
                                        [game game]
                                        [player player]
                                        [view view]))

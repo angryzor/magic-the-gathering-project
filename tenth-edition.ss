@@ -4,9 +4,12 @@
  (tenth-edition)
  (export card-forest
          card-canopy-spider
-         card-doomed-necromancer)
+         card-doomed-necromancer
+         card-island
+         card-sage-owl)
  (import (rnrs base (6))
          (magic object)
+         (magic double-linked-position-list)
          (magic cards)
          (magic mana))
  
@@ -67,10 +70,10 @@
                   "creatures/card-doomed-necromancer.jpg"
                   '()))
  
- )
+ 
  
  (define-dispatch-subclass (card-sage-owl game player)
-   ()
+   (play)
    (card-creature "Sage Owl"
                   'blue
                   (mana-list (mana-unit 'blue) (mana-unit 'colorless))
@@ -82,4 +85,17 @@
                   '(flying))
    
    (define (play)
-     
+     (super 'play)
+     (let ([lib ((player 'get-field) 'get-library-zone)]
+           [tmplst (position-list eq?)])
+       (tmplst 'add-before! (lib 'pop!))
+       (tmplst 'add-before! (lib 'pop!))
+       (tmplst 'add-before! (lib 'pop!))
+       (tmplst 'add-before! (lib 'pop!))
+       ((player 'get-gui) 'wait-reorder-cards "Reorder the first 4 cards of your library." tmplst)))
+   )
+ 
+ 
+ 
+ 
+     )

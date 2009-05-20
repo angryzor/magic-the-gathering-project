@@ -23,13 +23,14 @@
                             (src 'foldr (lambda (res card)
                                               (cons (card-control-constructor this card view) res)) '()))))
      
-     (super-new)))
+     (super-new)
+     (update)))
  
  (define gui-top-down-stack-zone-view%
    (class gui-card-with-actions-control%
      (init-field src)
      (init-field game)
-     (init-field player)
+     (init-field player)                
      
      (inherit-field card)
      
@@ -46,4 +47,5 @@
            (set! card new-card)
            (reload-pic)
            (refresh))))
-     (super-new)))
+     (super-new [card (null-card game player)])
+     (update)))

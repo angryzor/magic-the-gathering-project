@@ -8,8 +8,7 @@
          (magic cards card-combat-damage)
          (magic cards card-tappable)
          (magic object)
-         (magic cards card-action)
-         (magic gui-util))
+         (magic cards card-action))
 
  ;Class: card-creature
  (define-dispatch-subclass (card-creature name color cost game player power toughness picture attr-lst)

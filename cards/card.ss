@@ -24,12 +24,9 @@
    (define draw-action (card-action game
                                     "Draw" 
                                     (lambda ()
-                                      (let* ([p-field (player 'get-field)]
-                                             [phases (game 'get-phases)]
-                                             [c-phase-type (phases 'get-current-type)])
-                                        (and (eq? my-zone (p-field 'get-library-zone))
-                                             (eq? c-phase-type 'beginning-draw)
-                                             (eq? player (game 'get-active-player)))))
+                                      (and (eq? my-zone ((player 'get-field) 'get-library-zone))
+                                           (eq? ((game 'get-phases) 'get-current-type) 'beginning-draw)
+                                           (eq? player (game 'get-active-player))))
                                     (lambda ()
                                       (player 'draw-card))))
    

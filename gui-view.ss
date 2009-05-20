@@ -98,17 +98,58 @@
                              [parent my-main-frame])])
       (new message% [label msg]
                     [parent dlg])
-      (new gui-card-list-view% [src cards]
-                               [card-control-constructor (lambda (parent card view)
-                                                           (new gui-card-choice-control%
-                                                                [parent parent]
-                                                                [card card]
-                                                                [view view]
-                                                                [callback (lambda (i e)
-                                                                            (set! result (send i get-card))
-                                                                            (send dlg show #f))]))])
+      (let ([cl (new gui-card-list-view% [parent dlg]
+                                         [src cards]
+                                         [player player]
+                                         [view obj-gui-view]
+                                         [card-control-constructor (lambda (parent card view)
+                                                                     (new gui-card-choice-control%
+                                                                          [parent parent]
+                                                                          [card card]
+                                                                          [view view]
+                                                                          [callback (lambda (i e)
+                                                                                      (set! result (send i get-card))
+                                                                                      (send dlg show #f))]))])])
+        (send cl update))
       (send dlg show #t)) ;modal dialog, yields here
     result)
+  
+  (define (wait-reorder-cards msg cards)
+    (define src #f)
+    (define btn '())
+    (define (handler i e)
+      (if src
+          (let ([cardpos (cards 'find src)]
+                [newcardpos (cards 'find (send i get-card))])
+            (cards 'delete! cardpos)
+            (cards 'add-before! cardpos newcardpos)
+            (send i update)
+            (set! src #f)
+            (send btn enable #t))
+          (begin
+            (send btn enable #f)
+            (set! src (send i get-card)))))
+    (let* ([dlg (new dialog% [label "Sort your cards"]
+                             [parent my-main-frame])])
+      (new message% [label msg]
+                    [parent dlg])
+      (let ([cl (new gui-card-list-view% [parent dlg]
+                                         [src cards]
+                                         [player player]
+                                         [view obj-gui-view]
+                                         [card-control-constructor (lambda (parent card view)
+                                                                     (new gui-card-choice-control%
+                                                                          [parent parent]
+                                                                          [card card]
+                                                                          [view view]
+                                                                          [callback handler]))])])
+        (send cl update))
+      (set! btn (new button% [label "OK"]
+                             [parent dlg]
+                             [callback (lambda (i e)
+                                         (send dlg show #f))]))
+      (send dlg show #t)) ;modal dialog, yields here
+    cards)
   
   (define (obj-gui-view msg . args)
     (case msg
@@ -118,6 +159,7 @@
       ((wait-for-player-selection) (apply wait-for-player-selection args))
       ((waiting-for-card?) (apply waiting-for-card? args))
       ((wait-select-from-card-range) (apply wait-select-from-card-range args))
+      ((wait-reorder-cards) (apply wait-reorder-cards args))
       ((found-card) (apply found-card args))
       (else (error 'obj-gui-view "message not understood: ~S" msg))))
   

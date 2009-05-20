@@ -1,7 +1,8 @@
 #lang scheme/gui
 
 (provide gui-card-control%
-         gui-card-with-actions-control%)
+         gui-card-with-actions-control%
+         gui-card-choice-control%)
 (require (lib "card-dimensions.ss" "magic"))
 (require (lib "cards.ss" "magic"))
 
@@ -71,4 +72,12 @@
     (define/override (on-event event)
       (when (send event button-up? 'left)
         (callback this event)))
+    (super-new)))
+
+(define gui-card-custom-control%
+  (class gui-card-control%
+    (init-field callback)
+    
+    (define/override (on-event event)
+        (callback this event))
     (super-new)))

@@ -36,6 +36,10 @@
    (push! top pop!)
    (zone)
    
+   (define (peek-at-first-n n)
+     (if (not (super 'empty?))
+         (super 'sublist (super 'first-position) n)))
+   
    (define (push! card)
      (super 'add-card! card))
    
