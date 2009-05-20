@@ -24,19 +24,15 @@
                                                        (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-attackers)
                                                             (eq? player (game 'get-active-player))))
                                                      (lambda ()
-                                                       (gui-player-let (player 'get-gui) "Select a player to attack"
-                                                         (player)
-                                                         (set! attacksplayer player)
-                                                         (attacks!)))))
+                                                       (set! attacksplayer ((player 'get-gui) 'wait-for-player-selection "Select the player that you want to attack."))
+                                                       (attacks!))))
          (super 'add-to-action-library! (card-action game
                                                      "Block"
                                                      (lambda ()
                                                        (and (eq? ((game 'get-phases) 'get-current-type) 'combat-declare-blockers)
                                                             (not (eq? player (game 'get-active-player)))))
                                                      (lambda ()
-                                                       (gui-card-let (player 'get-gui) "Select the card that you wish to block"
-                                                         (c1)
-                                                         (c1 'is-blocked! this))))))
+                                                       (((player 'get-gui) 'wait-for-card-selection) 'is-blocked! this)))))
    
    (define attacksplayer #f)
    (define health toughness)
@@ -57,10 +53,10 @@
      (if attacks
          (if blocker
              (damage-creature)
-             (damage-player player))))
+             (damage-player))))
    
-   (define (damage-player player)
-     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this player)))
+   (define (damage-player)
+     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this attacksplayer)))
    
    (define (damage-creature)
      (set! health toughness)

@@ -18,6 +18,9 @@
                  (view 'waiting-for-card?))
         (view 'found-card card)))
     
+    (define/public (get-card)
+      card)
+    
     (define/public (reload-pic)
       (display "reloading!")
       (display (card 'get-picture))
@@ -46,7 +49,8 @@
     
     ; Show list of actions on rightclick
     (define/override (on-event event)
-        (cond ((view 'waiting-for-card?) (view 'found-card card))
+        (cond ((view 'waiting-for-card?) (when (send event button-up? 'left)
+                                           (view 'found-card card)))
               ((send event button-up? 'right) (let ([acts (card 'get-actions)])
                                                 (unless (acts 'empty?)
                                                   (let ([menu (new popup-menu% [title "Action menu"])])
@@ -60,3 +64,11 @@
     
     (super-new)))
                                                                   
+(define gui-card-choice-control%
+  (class gui-card-control%
+    (init-field callback)
+    
+    (define/override (on-event event)
+      (when (send event button-up? 'left)
+        (callback this event)))
+    (super-new)))

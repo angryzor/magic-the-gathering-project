@@ -5,97 +5,24 @@
          gui-in-play%
          gui-hand%
          gui-player-package%)
-(require (lib "gui-card-control.ss" "magic"))
 (require (lib "card-dimensions.ss" "magic"))
-(require (lib "null-card.ss" "magic"))
+(require (lib "gui-zone-views.ss" "magic"))
  
  (define gui-library%
-   (class gui-card-with-actions-control%
-     (init-field game)
-     (init-field player)
-     
-     (inherit-field card)
-     
-     (inherit refresh)
-     (inherit reload-pic)
-     
-     (define/public (update)
-       (let ([new-card (let ([lib ((player 'get-field) 'get-library-zone)])
-                         (if (lib 'empty?)
-                             (no-card game player)
-                             (lib 'top)))])
-         (unless (or (and (card 'supports-type? no-card)
-                          (new-card 'supports-type? no-card))
-                     (eq? card new-card))
-           (set! card new-card)
-           (reload-pic)
-           (refresh))))
-     
-     (super-new)))
+   (class gui-top-down-stack-zone-view%
+     (super-new [src ((player 'get-field) 'get-library-zone)])))
  
  (define gui-graveyard%
-   (class gui-card-control%
-     (init-field game)
-     (init-field player)
-     
-     (inherit-field card)
-     
-     (inherit refresh)
-     (inherit reload-pic)
-     
-     (define/public (update)
-       (let ([new-card (let ([grv ((player 'get-field) 'get-graveyard-zone)])
-                         (if (grv 'empty?)
-                             (no-card game player)
-                             (grv 'top)))])
-       (unless (or (and (card 'supports-type? no-card)
-                          (new-card 'supports-type? no-card))
-                     (eq? card new-card))
-           (set! card new-card)
-           (reload-pic)
-           (refresh))))
-     
-     (super-new)))
+   (class gui-top-down-stack-zone-view%
+     (super-new [src ((player 'get-field) 'get-graveyard-zone)])))
  
  (define gui-hand%
-   (class horizontal-pane%
-     (init-field player)
-     (init-field view)
-     
-     (inherit change-children)
-     (inherit get-children)
-     
-     (define/public (update)
-       (change-children (lambda (l)
-                          (let ([hand ((player 'get-field) 'get-hand-zone)]
-                                [newlist '()])
-                            (hand 'for-each (lambda (card)
-                                              (set! newlist (cons (new gui-card-with-actions-control% 
-                                                                       [parent this]
-                                                                       [card card]
-                                                                       [view view]) newlist))))
-                            newlist))))
-     
-     (super-new)))
+   (class gui-card-list-view%
+     (super-new [src ((player 'get-field) 'get-hand-zone)])))
  
  (define gui-in-play%
-   (class horizontal-pane%
-     (init-field player)
-     (init-field view)
-     
-     (inherit change-children)
-     
-     (define/public (update)
-       (change-children (lambda (l)
-                          (let ([hand ((player 'get-field) 'get-in-play-zone)]
-                                [newlist '()])
-                            (hand 'for-each (lambda (card)
-                                              (set! newlist (cons (new gui-card-with-actions-control% 
-                                                                       [parent this]
-                                                                       [card card]
-                                                                       [view view]) newlist))))
-                            newlist))))
-     (super-new)))
+   (class gui-card-list-view%
+     (super-new [src ((player 'get-field) 'get-in-play-zone)])))
  
  (define gui-player-package%
    (class vertical-pane%

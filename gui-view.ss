@@ -5,12 +5,14 @@
 (require (lib "card-dimensions.ss" "magic"))
 (require (lib "gui-elements.ss" "magic"))
 (require (lib "double-linked-position-list.ss" "magic"))
+(require (lib "gui-zone-views.ss" "magic"))
 (require (lib "object.ss" "magic"))
 
 (define (gui-view player game)
   (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))
   (define pkgs (position-list eq?))
-  (define proc-to-ex-on-crd-sel #f)
+  (define waiting-for-card #f)
+  (define card-result #f)
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
@@ -31,16 +33,16 @@
   
 
   ; Menu bar =========================================================================================
-  (define my-menu-bar (new menu-bar% [parent my-main-frame]))
-  (define my-menu-game (new menu% [parent my-menu-bar]
-                                  [label "&Game"]))
-  (define my-menu-item-exit (new menu-item% [parent my-menu-game]
-                                            [label "&Exit"]
-                                            [callback (lambda (i e)
-                                                        (display "exit clicked in instance ")
-                                                        (display i))]))
-  
-  
+;  (define my-menu-bar (new menu-bar% [parent my-main-frame]))
+;  (define my-menu-game (new menu% [parent my-menu-bar]
+;                                  [label "&Game"]))
+;  (define my-menu-item-exit (new menu-item% [parent my-menu-game]
+;                                            [label "&Exit"]
+;                                            [callback (lambda (i e)
+;                                                        (display "exit clicked in instance ")
+;                                                        (display i))]))
+;  
+;  
   ; Interface -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (update)
@@ -50,19 +52,27 @@
   (define (close)
     'ok)
   
-  (define (wait-for-card-selection msg proc)
+  (define (yield-card-loop)
+    (when waiting-for-card
+      (sleep/yield 0.03)
+      (yield-card-loop)))
+  
+  (define (wait-for-card-selection msg)
     (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " msg))
-    (set! proc-to-ex-on-crd-sel proc))
+    (set! waiting-for-card #t)
+    (yield-card-loop)
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name)))
+    card-result)
   
   (define (waiting-for-card?)
-    proc-to-ex-on-crd-sel)
+    waiting-for-card)
   
   (define (found-card card)
-    (set! proc-to-ex-on-crd-sel #f)
-    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name))
-    (proc-to-ex-on-crd-sel card)))
+    (set! card-result card)
+    (set! waiting-for-card #f))
   
-  (define (wait-for-player-selection msg proc)
+  (define (wait-for-player-selection msg)
+    (define result #f)
     (let* ([dlg (new dialog% [label "Select a player"]
                              [parent my-main-frame])]
            [players (game 'get-players)]
@@ -77,9 +87,28 @@
         (new button% [label "OK"]
              [parent dlg]
              [callback (lambda (i e)
-                         (send dlg show #f)
-                         (proc (vector-ref plyrs (send c get-selection))))])
-        (send dlg show #t))))
+                         (set! result (vector-ref plyrs (send c get-selection)))
+                         (send dlg show #f))]))
+      (send dlg show #t))  ; modal dialog, yields here
+    result)
+  
+  (define (wait-select-from-card-range msg cards)
+    (define result #f)
+    (let* ([dlg (new dialog% [label "Select a card"]
+                             [parent my-main-frame])])
+      (new message% [label msg]
+                    [parent dlg])
+      (new gui-card-list-view% [src cards]
+                               [card-control-constructor (lambda (parent card view)
+                                                           (new gui-card-choice-control%
+                                                                [parent parent]
+                                                                [card card]
+                                                                [view view]
+                                                                [callback (lambda (i e)
+                                                                            (set! result (send i get-card))
+                                                                            (send dlg show #f))]))])
+      (send dlg show #t)) ;modal dialog, yields here
+    result)
   
   (define (obj-gui-view msg . args)
     (case msg
@@ -88,6 +117,7 @@
       ((wait-for-card-selection) (apply wait-for-card-selection args))
       ((wait-for-player-selection) (apply wait-for-player-selection args))
       ((waiting-for-card?) (apply waiting-for-card? args))
+      ((wait-select-from-card-range) (apply wait-select-from-card-range args))
       ((found-card) (apply found-card args))
       (else (error 'obj-gui-view "message not understood: ~S" msg))))
   

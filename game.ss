@@ -12,7 +12,8 @@
          (magic gui-view)
          (magic null-card)
          (magic tenth-edition)
-         (magic mana))
+         (magic mana)
+         (magic known-decks))
  
  (define (game names)
    (define num-players (length names))
@@ -84,11 +85,8 @@
 (define d (c 'get-field))
 (define e (d 'get-hand-zone))
 (define f (d 'get-library-zone))
-(e 'add-card! (card-doomed-necromancer a c))
-(e 'add-card! (card-canopy-spider a c))
-(e 'add-card! (card-forest a c))
-(e 'add-card! (card-forest a c))
-(f 'add-card! (card-forest a c))
+((deck-arcanis-guile) 'give-to c a)
+((deck-arcanis-guile) 'give-to g a)
 ((c 'get-gui) 'update)
 ((g 'get-gui) 'update)
 

@@ -6,6 +6,7 @@
          card-canopy-spider
          card-doomed-necromancer)
  (import (rnrs base (6))
+         (magic object)
          (magic cards)
          (magic mana))
  
@@ -68,4 +69,17 @@
  
  )
  
- 
+ (define-dispatch-subclass (card-sage-owl game player)
+   ()
+   (card-creature "Sage Owl"
+                  'blue
+                  (mana-list (mana-unit 'blue) (mana-unit 'colorless))
+                  game
+                  player
+                  1
+                  1
+                  "creatures/card-sage-owl.jpg"
+                  '(flying))
+   
+   (define (play)
+     
