@@ -2,15 +2,52 @@
 
 (library
  (tenth-edition)
- (exports )
- (imports (rnrs base (6))
-          (magic cards))
+ (export card-forest
+         card-canopy-spider
+         card-doomed-necromancer)
+ (import (rnrs base (6))
+         (magic cards)
+         (magic mana))
  
+ ; ======================= LANDS ==================================
+ ; -------------------BASIC LANDS----------------------------------
+ (define (card-forest game player)
+   (card-land "Forest"
+              'green
+              game
+              player
+              "resources/bitmaps/cards/lands/card-forest.jpg"))
+ (define (card-swamp game player)
+   (card-land "Swamp"
+              'black
+              game
+              player
+              "resources/bitmaps/cards/lands/card-swamp.jpg"))
+ (define (card-mountain game player)
+   (card-land "Forest"
+              'red
+              game
+              player
+              "resources/bitmaps/cards/lands/card-mountain.jpg"))
+ (define (card-plains game player)
+   (card-land "Forest"
+              'white
+              game
+              player
+              "resources/bitmaps/cards/lands/card-plains.jpg"))
+ (define (card-island game player)
+   (card-land "Forest"
+              'blue
+              game
+              player
+              "resources/bitmaps/cards/lands/card-island.jpg"))
+ 
+ ; ======================= CREATURES ==============================
  
  (define (card-canopy-spider game player)
    (card-creature "Canopy Spider" 
                   'green 
-                  (mana-list '(green colorless))
+                  (mana-list (mana-unit 'green) (mana-unit 'colorless))
                   game
                   player
                   1
@@ -21,7 +58,7 @@
  (define (card-doomed-necromancer game player)
    (card-creature "Doomed Necromancer" 
                   'black
-                  (mana-list '(black colorless colorless))
+                  (mana-list (mana-unit 'black) (mana-unit 'colorless) (mana-unit 'colorless))
                   game
                   player
                   2
@@ -29,6 +66,6 @@
                   "resources/bitmaps/cards/creatures/card-doomed-necromancer.jpg"
                   '()))
  
- 
+ )
  
  

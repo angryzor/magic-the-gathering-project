@@ -16,7 +16,31 @@
               'green
               game
               player
-              "resources/bitmaps/cards/lands/card-forest.jpg"))
+              "lands/card-forest.jpg"))
+ (define (card-swamp game player)
+   (card-land "Swamp"
+              'black
+              game
+              player
+              "lands/card-swamp.jpg"))
+ (define (card-mountain game player)
+   (card-land "Mountain"
+              'red
+              game
+              player
+              "lands/card-mountain.jpg"))
+ (define (card-plains game player)
+   (card-land "Plains"
+              'white
+              game
+              player
+              "lands/card-plains.jpg"))
+ (define (card-island game player)
+   (card-land "Island"
+              'blue
+              game
+              player
+              "lands/card-island.jpg"))
  
  ; ======================= CREATURES ==============================
  
@@ -28,7 +52,7 @@
                   player
                   1
                   3
-                  "resources/bitmaps/cards/creatures/card-canopy-spider.jpg"
+                  "creatures/card-canopy-spider.jpg"
                   '(reach)))
  
  (define (card-doomed-necromancer game player)
@@ -39,7 +63,7 @@
                   player
                   2
                   2
-                  "resources/bitmaps/cards/creatures/card-doomed-necromancer.jpg"
+                  "creatures/card-doomed-necromancer.jpg"
                   '()))
  
  )

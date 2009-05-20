@@ -58,9 +58,9 @@
     proc-to-ex-on-crd-sel)
   
   (define (found-card card)
-    (proc-to-ex-on-crd-sel card)
     (set! proc-to-ex-on-crd-sel #f)
-    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name))))
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name))
+    (proc-to-ex-on-crd-sel card)))
   
   (define (wait-for-player-selection msg proc)
     (let* ([dlg (new dialog% [label "Select a player"]

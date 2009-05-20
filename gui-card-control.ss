@@ -11,7 +11,7 @@
     (init-field view)
     (init [paint-callback (lambda () 'ok)])
     
-    (define pic (make-object bitmap% (card 'get-picture)))
+    (define pic (make-object bitmap% (string-append "resources/bitmaps/cards/" (card 'get-picture))))
     
     (define/override (on-event event)
       (when (and (send event button-up? 'left)
