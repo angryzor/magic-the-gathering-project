@@ -14,7 +14,8 @@
  (define-dispatch-subclass (card-creature name color cost game player power toughness picture attr-lst)
    (deal-damage can-block? turn-end get-power set-power! get-toughness
     set-toughness! get-health set-health! is-blocked! attacks! get-special-attributes 
-    has-special-attribute? add-special-attribute! remove-special-attribute! supports-type? get-type)
+    has-special-attribute? add-special-attribute! remove-special-attribute! supports-type? get-type can-be-blocked-by?
+    create-virtual-blocked-combat-damage create-virtual-direct-combat-damage)
    (card-tappable name color cost game player picture)
    (init (special-attribs 'from-scheme-list attr-lst)
          (super 'add-to-action-library! (card-action game
@@ -24,7 +25,7 @@
                                                             (eq? player (game 'get-active-player))))
                                                      (lambda ()
                                                        (set! attacksplayer ((player 'get-gui) 'wait-for-player-selection "Select the player that you want to attack."))
-                                                       (attacks!))))
+                                                       (this 'attacks!))))
          (super 'add-to-action-library! (card-action game
                                                      "Block"
                                                      (lambda ()
@@ -55,17 +56,25 @@
              (damage-player))))
    
    (define (damage-player)
-     (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-direct-combat-damage this attacksplayer)))
+     (((game 'get-field) 'get-stack-zone) 'push! (create-virtual-direct-combat-damage this attacksplayer)))
    
    (define (damage-creature)
-     (set! health toughness)
+     (this 'set-health! (this 'get-toughness))
      (blocker 'set-health! (blocker 'get-toughness))
      (let ([stack ((game 'get-field) 'get-stack-zone)])
-       (stack 'push! (card-virtual-blocked-combat-damage this blocker))
-       (stack 'push! (card-virtual-blocked-combat-damage blocker this))))
+       (stack 'push! (create-virtual-blocked-combat-damage this blocker))
+       (stack 'push! (create-virtual-blocked-combat-damage blocker this))))
 
+   (define (create-virtual-blocked-combat-damage from to)
+     (card-virtual-blocked-combat-damage from to))
+   
+   (define (create-virtual-direct-combat-damage from to-player)
+     (card-virtual-direct-combat-damage from to-player))
+   
    (define (can-block? attacker)
-     #t) ; special-attribs should be calculated here
+     (attacker 'can-be-blocked-by? this)) ; special-attribs should be calculated here
+   (define (can-be-blocked-by? blocker)
+     #t)
    
    (define (turn-end)
      (set! blocker #f)

@@ -12,7 +12,9 @@
          card-action
          card-land
          card-creature
-         card-artifact)
+         card-artifact
+         card-virtual-blocked-combat-damage
+         card-virtual-direct-combat-damage)
  (import (rnrs base (6))
          (magic cards card)
          (magic cards card-stackable)
@@ -24,7 +26,8 @@
          (magic cards card-action)
          (magic cards card-land)
          (magic cards card-creature)
-         (magic cards card-artifact)))
+         (magic cards card-artifact)
+         (magic cards card-combat-damage))
  
  
  

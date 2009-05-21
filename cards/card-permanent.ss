@@ -54,8 +54,9 @@
    
    (define (can-play?)
      (display name)
-     (display ": ")
+     (display " cost: ")
      (cost 'print)
+     (display "; can-afford? ")
      (display ((player 'get-manapool) 'can-afford? cost))
      (newline)
      (and (eq? ((game 'get-phases) 'get-current-type) 'main)
