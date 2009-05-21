@@ -28,11 +28,9 @@
    (define (tapped?)
      tapped)
    (define (tap!)
-     (set! tapped #t)
-     (game 'update-all-guis))
+     (set! tapped #t))
    (define (untap!)
-     (set! tapped #f)
-     (game 'update-all-guis))
+     (set! tapped #f))
    
    (define (supports-type? type)
      (or (eq? type card-tappable) (super 'supports-type? type)))

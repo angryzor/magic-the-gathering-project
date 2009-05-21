@@ -7,7 +7,8 @@
          (rnrs io simple)
          (magic object)
          (magic cards card)
-         (magic cards card-action))
+         (magic cards card-action)
+         (magic cards card-virtual-perm-via-stack))
 
  ;Class: card-permanent
  (define-dispatch-subclass (card-permanent name color cost game player picture)
@@ -15,24 +16,27 @@
    (card name color cost game player picture)
    (init (super 'add-to-action-library! act-play))
    
+   (define already-going-to-play #f)
+   
    (define act-play (card-action game
                                  "Play"
                                  (lambda ()
                                    (and (eq? (this 'get-zone) ((player 'get-field) 'get-hand-zone))
                                         (eq? player (game 'get-active-player))
-                                        (this 'can-play?)))
+                                        (this 'can-play?)
+                                        (not already-going-to-play)))
                                  (lambda ()
-                                   ((super 'get-zone) 'delete-card! this)
-                                   (((player 'get-field) 'get-in-play-zone) 'add-card! this))))
+                                   (((game 'get-field) 'get-stack-zone) 'push! (card-virtual-perm-via-stack this))
+                                   (set! already-going-to-play #t))))
                                         
    
    (define (play)
      (display "Playing card: ")
      (display (this 'get-name))
      (newline)
-     #f)
+     (set! already-going-to-play #f))
    (define (destroy)
-     #f)
+     (set! already-going-to-play #f))
    (define (turn-begin)
      #f)
    (define (phase-begin)
@@ -48,8 +52,7 @@
      card-permanent)
    (define (changed-zone zone)
      (super 'changed-zone zone)
-     (cond ((eq? ((player 'get-field) 'get-in-play-zone) zone) (this 'play))
-           ((eq? ((player 'get-field) 'get-graveyard-zone) zone) (this 'destroy))))
+     (cond ((eq? ((player 'get-field) 'get-in-play-zone) zone) (this 'play))))
        
    
    (define (can-play?)

@@ -27,7 +27,9 @@
          (magic cards card-land)
          (magic cards card-creature)
          (magic cards card-artifact)
-         (magic cards card-combat-damage))
+         (magic cards card-combat-damage)
+         (magic cards card-virtual)
+         (magic cards card-virtual-perm-via-stack)))
  
  
  

@@ -15,6 +15,7 @@
   (define waiting-for-card #f)
   (define card-result #f)
   (define bm-cache (new gui-bitmap-cache%))
+  (define stackview '())
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
@@ -23,7 +24,10 @@
                                            [min-height CARD-HEIGHT])])
       (new button% [parent stackpane]
                    [label "Ready!"]
-                   [callback (λ (i e) (player 'set-ready! #t))]))
+                   [callback (λ (i e) (player 'set-ready! #t))])
+      (set! stackview (new gui-card-list-view% [view obj-gui-view]
+                                               [parent stackpane]
+                                               [src ((game 'get-field) 'get-stack-zone)])))
     (let ([players (game 'get-players)])
       (players 'for-each (lambda (player)
                            (pkgs 'add-after! (new gui-player-package% [parent my-main-frame]
@@ -48,6 +52,7 @@
   ; Interface -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (update)
+    (send stackview update)
     (pkgs 'for-each (lambda (pkg)
                       (send pkg update))))
   

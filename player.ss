@@ -62,8 +62,7 @@
                     (has-drawn?)))
          (begin
            (set! drawn #t)
-           (hand 'add-card! (lib 'pop!))
-           (game 'update-all-guis)))))
+           (hand 'add-card! (lib 'pop!))))))
    
    (define (has-drawn?)
      drawn)

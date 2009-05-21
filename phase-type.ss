@@ -33,6 +33,7 @@
                 (to-all-perms 'turn-begin))
               (lambda ()
                 (to-all-perms 'turn-end)
+                (game 'update-all-guis)
                 (exit-action)))
 								   
    (define (to-all-perms msg . args)

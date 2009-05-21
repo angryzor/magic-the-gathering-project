@@ -57,7 +57,7 @@
            card))))
  
  (define-dispatch-subclass (zone-stack)
-   (add-card! push!)
+   (add-card! push! resolve-one!)
    (zone-stacklike)
    
    (define (add-card! card)
@@ -69,9 +69,10 @@
    (define (push! card)
      (add-card! card))
    
-;   (define (resolve-one!)
-;     (let ([card (super 'pop!)])
-;       (card 'cast)))
+   (define (resolve-one!)
+     (let ([card (super 'pop!)])
+       (card 'cast)
+       ((((card 'get-player) 'get-field) 'get-graveyard-zone) 'add-card! card)))
    )
  
  (define-dispatch-subclass (zone-library)

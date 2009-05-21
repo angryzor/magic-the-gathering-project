@@ -242,8 +242,7 @@
                                             (not (this 'tapped?))
                                             ((player 'get-manapool) 'can-afford? (mana-list (mana-unit 'blue) (mana-unit 'blue) (mana-unit 'colorless) (mana-unit 'colorless)))))
                                      (lambda ()
-                                       (((player 'get-field) 'get-in-play-zone) 'delete-card! this)
-                                       (((player 'get-field) 'get-hand-zone) 'add-card! this)))))
+                                       ((this 'get-zone) 'move-card! this ((player 'get-field) 'get-hand-zone))))))
  
  
  ;denizen of the deep
@@ -270,7 +269,7 @@
            (if (not (eq? card this))
                (begin
                  (inplay 'delete! pos)
-                 (hand 'add-after! card)))
+                 (hand 'add-card! card)))
            (if next
                (iter next))))
        (if (not (inplay 'empty?))
@@ -297,11 +296,61 @@
    
    (define (cast)
      (let ([owner (target 'get-player)])
-       (((owner 'get-field) 'get-in-play-zone) 'delete-card! target)
-       (((owner 'get-field) 'get-hand-zone) 'add-card! target))))
+       ((target 'get-zone) 'move-card! target ((owner 'get-field) 'get-hand-zone)))))
+ 
+ ;remove soul
+ (define-dispatch-subclass (card-remove-soul game player)
+   (play cast)
+   (card-instant "Remove Soul"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'colorless))
+                 game
+                 player
+                 "instants/card-remove-soul.jpg")
+   (define target #f)
+   (define (play)
+     (define (wait-for-suitable-card card)
+       (if (and (card 'supports-type? card-virtual-perm-via-stack)
+                ((card 'get-perm) 'supports-type? card-creature))
+           card
+           (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target creature to cast \"Remove Soul\" upon."))))
+     (set! target (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target creature to cast \"Remove Soul\" upon."))))
+   (define (cast)
+     (let ([owner (target 'get-player)])
+       (((target 'get-perm) 'get-zone) 'move-card! (target 'get-perm) ((owner 'get-field) 'get-graveyard-zone))
+       ((target 'get-zone) 'move-card! target ((owner 'get-field) 'get-graveyard-zone)))))
+ 
+ 
+ ;telling time
+ (define-dispatch-subclass (card-telling-time game player)
+   (cast)
+   (card-instant "Telling Time"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'colorless))
+                 game
+                 player
+                 "instants/card-telling-time.jpg")
+   
+   (define (cast)
+     (let ([lib ((player 'get-field) 'get-library-zone)]
+           [tmplst (position-list eq?)])
+       (let loop ([n 3])
+         (if (and (> n 0)
+                  (not (lib 'empty?)))
+             (begin
+               (tmplst 'add-before! (lib 'pop!))
+               (loop (- n 1)))))
+       (let ([c1 ((player 'get-gui) 'wait-select-from-card-range "Telling Time: Choose card to put in your hand" tmplst)])
+         (tmplst 'delete! (tmplst 'find c1))
+         (let ([c2 ((player 'get-gui) 'wait-select-from-card-range "Telling Time: Choose card to put on top of library" tmplst)])
+           (tmplst 'delete! (tmplst 'find c2))
+           (let ([c3 ((player 'get-gui) 'wait-select-from-card-range "Telling Time: Choose card to put on bottom of library" tmplst)])
+             (((player 'get-field) 'get-hand-zone) 'add-card! c1)
+             (lib 'add-before! c2)
+             (lib 'add-after! c3))))))
                  
    
- 
+ ;
  
  
      )
