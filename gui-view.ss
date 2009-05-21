@@ -7,12 +7,14 @@
 (require (lib "double-linked-position-list.ss" "magic"))
 (require (lib "gui-zone-views.ss" "magic"))
 (require (lib "object.ss" "magic"))
+(require (lib "gui-bitmap-cache.ss" "magic"))
 
 (define (gui-view player game)
   (define my-main-frame (new frame% [label (string-append "Magic: The Gathering -- " (player 'get-name))]))
   (define pkgs (position-list eq?))
   (define waiting-for-card #f)
   (define card-result #f)
+  (define bm-cache (new gui-bitmap-cache%))
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
@@ -100,7 +102,6 @@
                     [parent dlg])
       (let ([cl (new gui-card-list-view% [parent dlg]
                                          [src cards]
-                                         [player player]
                                          [view obj-gui-view]
                                          [card-control-constructor (lambda (parent card view)
                                                                      (new gui-card-choice-control%
@@ -136,7 +137,6 @@
                     [parent dlg])
       (set! cl (new gui-card-list-view% [parent dlg]
                                         [src cards]
-                                        [player player]
                                         [view obj-gui-view]
                                         [card-control-constructor (lambda (parent card view)
                                                                     (new gui-card-choice-control%
@@ -152,6 +152,9 @@
       (send dlg show #t)) ;modal dialog, yields here
     cards)
   
+  (define (get-bm-cache)
+    bm-cache)
+  
   (define (obj-gui-view msg . args)
     (case msg
       ((update) (apply update args))
@@ -162,6 +165,7 @@
       ((wait-select-from-card-range) (apply wait-select-from-card-range args))
       ((wait-reorder-cards) (apply wait-reorder-cards args))
       ((found-card) (apply found-card args))
+      ((get-bm-cache) (apply get-bm-cache args))
       (else (error 'obj-gui-view "message not understood: ~S" msg))))
   
   (prepare-layout)

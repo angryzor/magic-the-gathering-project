@@ -23,14 +23,12 @@
  (define gui-hand%
    (class gui-card-list-view%
      (init player)
-     (super-new [src ((player 'get-field) 'get-hand-zone)]
-                [player player])))
+     (super-new [src ((player 'get-field) 'get-hand-zone)])))
  
  (define gui-in-play%
    (class gui-card-list-view%
      (init player)
-     (super-new [src ((player 'get-field) 'get-in-play-zone)]
-                [player player])))
+     (super-new [src ((player 'get-field) 'get-in-play-zone)])))
  
  (define gui-player-package%
    (class vertical-pane%

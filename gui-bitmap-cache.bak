@@ -1,0 +1,30 @@
+#lang scheme/gui
+
+(provide gui-bitmap-cache%)
+(require "double-linked-position-list.ss" "magic")
+
+(define gui-bitmap-cache%
+  (class object%
+    (define cache (position-list (lambda (val str)
+                                   (string=? (send val get-path) str))))
+    
+    (define gui-bitmap-cache-node%
+      (class object%
+        (init-field path)
+        (define bitmap (make-object bitmap% path))
+        (define/public (get-path)
+          path)
+        (define/public (get-bitmap)
+          bitmap)
+        
+        (super-new)))
+    
+    (define/public (access path)
+      (let ([pos (cache 'find path)])
+        (if pos
+            (send (cache 'value pos) get-bitmap)
+            (let ([new-n (make-object gui-bitmap-cache-node% path)])
+              (cache 'add-after! new-n)
+              (send new-n get-bitmap)))))
+    
+    (super-new)))

@@ -7,7 +7,6 @@
  
  (define gui-card-list-view%
    (class horizontal-pane%
-     (init-field player)
      (init-field view)
      (init-field src)
      (init-field [card-control-constructor (lambda (parent card view)
