@@ -13,8 +13,10 @@
          card-land
          card-creature
          card-artifact
+         card-virtual
          card-virtual-blocked-combat-damage
-         card-virtual-direct-combat-damage)
+         card-virtual-direct-combat-damage
+         card-virtual-perm-via-stack)
  (import (rnrs base (6))
          (magic cards card)
          (magic cards card-stackable)

@@ -77,6 +77,17 @@
      (set! drawn #f)
      (set! pland #f))
    
+   (define (deal-initial-hand)
+     (let ([lib (my-field 'get-library-zone)]
+           [hand (my-field 'get-hand-zone)])
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))
+       (hand 'add-card! (lib 'pop!))))
+   
    (define (obj-player msg . args)
      (case msg
        ((get-life-counter) (apply get-life-counter args))
@@ -91,6 +102,7 @@
        ((set-ready!) (apply set-ready! args))
        ((ready?) (apply ready? args))
        ((draw-card) (apply draw-card args))
+       ((deal-initial-hand) (apply deal-initial-hand args))
        ((set-flag-played-land!) (apply set-flag-played-land! args))
        ((has-drawn?) (apply has-drawn? args))
        ((has-played-land?) (apply has-played-land? args))

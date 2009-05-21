@@ -29,7 +29,8 @@
    
    ; Operations:
    (define (perform-default-action)
-     (tap-for-mana 'perform))
+     (if ((super 'get-actions) 'find tap-for-mana)
+         (tap-for-mana 'perform)))
    
    (define (supports-type? type)
      (or (eq? type card-land) (super 'supports-type? type)))

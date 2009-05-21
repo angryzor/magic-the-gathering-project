@@ -31,9 +31,6 @@
                                         
    
    (define (play)
-     (display "Playing card: ")
-     (display (this 'get-name))
-     (newline)
      (set! already-going-to-play #f))
    (define (destroy)
      (set! already-going-to-play #f))
@@ -56,12 +53,6 @@
        
    
    (define (can-play?)
-     (display name)
-     (display " cost: ")
-     (cost 'print)
-     (display "; can-afford? ")
-     (display ((player 'get-manapool) 'can-afford? cost))
-     (newline)
      (and (eq? ((game 'get-phases) 'get-current-type) 'main)
           ((player 'get-manapool) 'can-afford? cost))))
 )

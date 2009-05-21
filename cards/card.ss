@@ -14,7 +14,9 @@
  ; Class: card 
  (define-dispatch-class (card name color cost game player picture)
    (get-name get-color get-cost get-game get-player set-cost! can-play? changed-zone
-    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! remove-action! add-to-action-library! clear-actions! perform-default-action get-zone)
+    draw destroy update-actions supports-type? get-type get-picture get-actions add-action! 
+    remove-action! add-to-action-library! clear-actions! perform-default-action get-zone
+    other-changed-zone)
    (init (add-to-action-library! draw-action))
    
    (define actions (position-list eq?))
@@ -73,6 +75,8 @@
      (this 'update-actions)
      (if (eq? ((player 'get-field) 'get-graveyard-zone) zone) 
          (this 'destroy)))
+   (define (other-changed-zone card zone)
+     #f)
    (define (get-zone)
      my-zone)
    (define (update-actions)

@@ -51,7 +51,8 @@
      (define lib (new gui-library% [parent handlevel]
                                    [game game]
                                    [player player]
-                                   [view view]))
+                                   [view view]
+                                   [face-down #t]))
      (define grave (new gui-graveyard% [parent handlevel]
                                        [game game]
                                        [player player]

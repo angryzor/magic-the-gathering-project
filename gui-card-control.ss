@@ -11,8 +11,14 @@
     (init-field card)
     (init-field view)
     (init [paint-callback (lambda () 'ok)])
+    (init-field [face-down #f])
     
-    (define pic (send (view 'get-bm-cache) access (string-append "resources/bitmaps/cards/" (card 'get-picture))))
+    (define (picpath)
+      (if face-down 
+          "resources/bitmaps/cards/card-back.jpg"
+          (string-append "resources/bitmaps/cards/" (card 'get-picture))))
+    
+    (define pic (send (view 'get-bm-cache) access (picpath)))
     
     (define/override (on-event event)
       (when (and (send event button-up? 'left)
@@ -23,7 +29,7 @@
       card)
     
     (define/public (reload-pic)
-      (set! pic (send (view 'get-bm-cache) access (string-append "resources/bitmaps/cards/" (card 'get-picture)))))
+      (set! pic (send (view 'get-bm-cache) access (picpath))))
     
     (super-new [min-width CARD-WIDTH]
                [min-height CARD-HEIGHT]

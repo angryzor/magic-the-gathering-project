@@ -16,15 +16,16 @@
   (define card-result #f)
   (define bm-cache (new gui-bitmap-cache%))
   (define stackview '())
+  (define readybtn '())
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (prepare-layout)
     (let ([stackpane (new horizontal-pane% [parent my-main-frame]
                                            [min-height CARD-HEIGHT])])
-      (new button% [parent stackpane]
-                   [label "Ready!"]
-                   [callback (λ (i e) (player 'set-ready! #t))])
+      (set! readybtn (new button% [parent stackpane]
+                                  [label "Ready!"]
+                                  [callback (λ (i e) (player 'set-ready! #t))]))
       (set! stackview (new gui-card-list-view% [view obj-gui-view]
                                                [parent stackpane]
                                                [src ((game 'get-field) 'get-stack-zone)])))
@@ -65,8 +66,10 @@
       (yield-card-loop)))
   
   (define (wait-for-card-selection msg)
+    (display "cardwait")
     (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " msg))
     (set! waiting-for-card #t)
+    (send readybtn enable #f)
     (yield-card-loop)
     (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name)))
     card-result)
@@ -76,7 +79,8 @@
   
   (define (found-card card)
     (set! card-result card)
-    (set! waiting-for-card #f))
+    (set! waiting-for-card #f)
+    (send readybtn enable #t))
   
   (define (wait-for-player-selection msg)
     (define result #f)
@@ -157,6 +161,26 @@
       (send dlg show #t)) ;modal dialog, yields here
     cards)
   
+  (define (prompt msg cchoices)
+    (define result #f)
+    (let* ([dlg (new dialog% [label "Prompt"]
+                             [parent my-main-frame])]
+           [players (game 'get-players)]
+           [plyrs (players 'to-vector)])
+      (new message% [label msg]
+                    [parent dlg])
+      (let ([c (new choice% [label "Choice: "]
+                   [parent dlg]
+                   [choices (cchoices 'foldr (lambda (res val)
+                                               (cons val res)) '())])])
+        (new button% [label "OK"]
+             [parent dlg]
+             [callback (lambda (i e)
+                         (set! result (send c get-selection))
+                         (send dlg show #f))]))
+      (send dlg show #t))  ; modal dialog, yields here
+    result)
+  
   (define (get-bm-cache)
     bm-cache)
   
@@ -164,11 +188,12 @@
     (case msg
       ((update) (apply update args))
       ((close) (apply close args))
-      ((wait-for-card-selection) (apply wait-for-card-selection args))
+      ((wait-for-card-selection) (display "at least it was called :/")(apply wait-for-card-selection args))
       ((wait-for-player-selection) (apply wait-for-player-selection args))
       ((waiting-for-card?) (apply waiting-for-card? args))
       ((wait-select-from-card-range) (apply wait-select-from-card-range args))
       ((wait-reorder-cards) (apply wait-reorder-cards args))
+      ((prompt) (apply prompt args))
       ((found-card) (apply found-card args))
       ((get-bm-cache) (apply get-bm-cache args))
       (else (error 'obj-gui-view "message not understood: ~S" msg))))

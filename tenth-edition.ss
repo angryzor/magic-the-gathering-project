@@ -2,16 +2,13 @@
 
 (library
  (tenth-edition)
- (export card-forest
-         card-canopy-spider
-         card-doomed-necromancer
-         card-island
-         card-sage-owl)
+ (export deck-arcanis-guile)
  (import (rnrs base (6))
          (magic object)
          (magic double-linked-position-list)
          (magic cards)
-         (magic mana))
+         (magic mana)
+         (magic deck))
  
  ; ======================= LANDS ==================================
  ; -------------------BASIC LANDS----------------------------------
@@ -153,7 +150,7 @@
    (define prev-zone '())
    
    (define (changed-zone zone)
-     (super 'changed-zone)
+     (super 'changed-zone zone)
      (let ([pfield (player 'get-field)])
        (if (and (eq? zone (pfield 'get-graveyard-zone))
                 (eq? prev-zone (pfield 'get-in-play-zone)))
@@ -289,7 +286,8 @@
    (define target #f)
    (define (play)
      (define (wait-for-suitable-card card)
-       (if (card 'supports-type? card-creature)
+       (if (and (card 'supports-type? card-creature)
+                (eq? (card 'get-zone) (((card 'get-player) 'get-field) 'get-in-play-zone)))
            card
            (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target creature to cast \"Unsummon\" upon."))))
      (set! target (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target creature to cast \"Unsummon\" upon."))))
@@ -347,10 +345,192 @@
            (let ([c3 ((player 'get-gui) 'wait-select-from-card-range "Telling Time: Choose card to put on bottom of library" tmplst)])
              (((player 'get-field) 'get-hand-zone) 'add-card! c1)
              (lib 'add-before! c2)
-             (lib 'add-after! c3))))))
-                 
+             (lib 'add-after! c3)))))))
+            
    
- ;
+   ;boomerang
+ (define-dispatch-subclass (card-boomerang game player)
+   (play cast)
+   (card-instant "Boomerang"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'blue))
+                 game
+                 player
+                 "instants/card-boomerang.jpg")
+   
+   (define target #f)
+   (define (play)
+     (define (wait-for-suitable-card card)
+       (if (and (card 'supports-type? card-permanent)
+                (eq? (card 'get-zone) (((card 'get-player) 'get-field) 'get-in-play-zone)))
+           card
+           (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Boomerang\""))))
+     (set! target (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Boomerang\""))))
+   
+   (define (cast)
+     (let ([owner (target 'get-player)])
+       ((target 'get-zone) 'move-card! target ((owner 'get-field) 'get-hand-zone)))))
  
  
+ ;counsel of the soratami
+ (define-dispatch-subclass (card-counsel-of-the-soratami game player)
+   (cast)
+   (card-sorcery "Counsel of the Soratami"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'colorless) (mana-unit 'colorless))
+                 game
+                 player
+                 "sorceries/card-counsel-of-the-soratami.jpg")
+   (define (cast)
+     (player 'draw-card)
+     (player 'draw-card)))
+   
+   
+ ;cancel
+ (define-dispatch-subclass (card-cancel game player)
+   (play cast)
+   (card-instant "Cancel"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'blue) (mana-unit 'blue))
+                 game
+                 player
+                 "instants/card-cancel.jpg")
+   
+   (define target #f)
+   (define (play)
+     (define (wait-for-suitable-card card)
+       (if (eq? (card 'get-zone) (((card 'get-player) 'get-field) 'get-stack-zone))
+           card
+           (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Cancel\""))))
+     (set! target (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Cancel\""))))
+   
+   (define (cast)
+     (let ([owner (target 'get-player)])
+       ((target 'get-zone) 'move-card! target ((owner 'get-field) 'get-graveyard-zone)))))
+   
+ 
+ ;tidings
+ (define-dispatch-subclass (card-tidings game player)
+   (cast)
+   (card-sorcery "Tidings"
+                 'blue
+                 (mana-list (mana-unit 'blue) (mana-unit 'colorless) (mana-unit 'colorless))
+                 game
+                 player
+                 "sorceries/card-tidings.jpg")
+   (define (cast)
+     (player 'draw-card)
+     (player 'draw-card)
+     (player 'draw-card)
+     (player 'draw-card)))
+ 
+ 
+ ;krakens eye
+ (define-dispatch-subclass (card-krakens-eye game player)
+   (other-changed-zone)
+   (card-artifact "Kraken's Eye"
+                  'colorless
+                  (mana-list (mana-unit 'colorless) (mana-unit 'colorless))
+                  game
+                  player
+                  "artifacts/card-krakens-eye.jpg")
+   
+   (define (other-changed-zone card zone)
+     (super 'other-changed-zone card zone)
+     (if (or (and (not (card 'supports-type? card-virtual))
+                  (eq? zone (((card 'get-game) 'get-field) 'get-stack-zone)))
+             (and (not (card 'supports-type? card-land))
+                  (eq? zone (((card 'get-player) 'get-field) 'get-in-play-zone))))
+         (player 'set-life-counter! (+ 1 (player 'get-life-counter))))))
+ 
+ 
+ ;rod of ruin
+ (define-dispatch-subclass (card-rod-of-ruin-player-damage rod player)
+   (cast destroy)
+   (card-virtual (string-append "Rod of Ruin player damage to " (player 'get-name))
+                   (rod 'get-color)
+                   (mana-list)
+                   (rod 'get-game)
+                   (rod 'get-player)
+                   (rod 'get-picture))
+   
+   (define (destroy)
+     ((rod 'get-zone) 'move-card! rod (((rod 'get-player) 'get-field) 'get-graveyard-zone)))
+   (define (cast)
+     (player 'set-life-counter! (- (player 'get-life-counter) 1))))
+   
+ (define-dispatch-subclass (card-rod-of-ruin-creature-damage rod creature)
+   (cast destroy)
+   (card-virtual (string-append "Rod of Ruin creature damage to " (creature 'get-name))
+                 (rod 'get-color)
+                 (mana-list)
+                 (rod 'get-game)
+                 (rod 'get-player)
+                 (rod 'get-picture))
+   
+   (define (destroy)
+     ((rod 'get-zone) 'move-card! rod (((rod 'get-player) 'get-field) 'get-graveyard-zone)))
+   (define (cast)
+     (creature 'set-health! (- (creature 'get-health) 1))))
+   
+ (define-dispatch-subclass (card-rod-of-ruin game player)
+   ()
+   (card-artifact "Rod of Ruin"
+                  'colorless
+                  (mana-list (mana-unit 'colorless) (mana-unit 'colorless))
+                  game
+                  player
+                  "artifacts/card-rod-of-ruin.jpg")
+   (init (super 'add-to-action-library! act-dealdamage))
+   
+   (define (wait-for-suitable-card card)
+       (if (and (card 'supports-type? card-creature)
+                (eq? (card 'get-zone) (((card 'get-player) 'get-field) 'get-in-play-zone)))
+           card
+           (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Rod of Ruin\""))))
+     
+   (define act-dealdamage (card-action game
+                                       "Sacrifice mana & Tap: Return Arcanis to hand"
+                                       (lambda ()
+                                         (and (eq? (super 'get-zone) ((player 'get-field) 'get-in-play-zone))
+                                              (eq? ((game 'get-phases) 'get-current-type) 'main)
+                                              (eq? player (game 'get-active-player))
+                                              (not (this 'tapped?))
+                                              ((player 'get-manapool) 'can-afford? (mana-list (mana-unit 'colorless) (mana-unit 'colorless) (mana-unit 'colorless)))))
+                                       (lambda ()
+                                         (let ([c (position-list eq?)]
+                                               [stack ((game 'get-field) 'get-stack-zone)])
+                                           (this 'tap)
+                                           (c 'from-scheme-list '("Player" "Creature"))
+                                           (case ((player 'get-gui) 'prompt "Deal damage to player or creature?")
+                                             ((0) (stack 'add-card! (card-rod-of-ruin-player-damage this ((player 'get-gui) 'wait-for-player-selection "Select a player to deal damage to."))))
+                                             ((1) (stack 'add-card! (card-rod-of-ruin-creature-damage this (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Rod of Ruin\"")))))))))))
+ 
+ 
+ 
+ 
+ 
+ 
+  (define (deck-arcanis-guile)
+   (let ([d (deck "Arcanis' Guile")])
+     (d 'add-ccn-multiple! 17 (ccn-couple "Island" card-island))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Sage Owl" card-sage-owl))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Cloud Elemental" card-cloud-elemental))
+     (d 'add-ccn! (ccn-couple "Phantom Warrior" card-phantom-warrior))
+     (d 'add-ccn! (ccn-couple "Aven Fisher" card-aven-fisher))
+     (d 'add-ccn! (ccn-couple "Thieving Magpie" card-thieving-magpie))
+     (d 'add-ccn! (ccn-couple "Air Elemental" card-air-elemental))
+     (d 'add-ccn! (ccn-couple "Arcanis the Omnipotent" card-arcanis-the-omnipotent))
+     (d 'add-ccn! (ccn-couple "Denizen of the Deep" card-denizen-of-the-deep))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Unsummon" card-unsummon))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Remove Soul" card-remove-soul))
+     (d 'add-ccn! (ccn-couple "Telling Time" card-telling-time))
+     (d 'add-ccn! (ccn-couple "Boomerang" card-boomerang))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Counsel of the Soratami" card-counsel-of-the-soratami))
+     (d 'add-ccn-multiple! 2 (ccn-couple "Cancel" card-cancel))
+     (d 'add-ccn! (ccn-couple "Tidings" card-tidings))
+     (d 'add-ccn! (ccn-couple "Kraken's Eye" card-krakens-eye))
+     (d 'add-ccn! (ccn-couple "Rod of Ruin" card-rod-of-ruin))
+     d))
      )
+     

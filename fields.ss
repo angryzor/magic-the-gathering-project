@@ -41,7 +41,7 @@
    obj-player-field)
  
  (define-dispatch-class (main-field)
-   (add-player-field! get-player-fields get-stack-zone to-all)
+   (add-player-field! get-player-fields get-stack-zone to-all for-all)
    
    (define pfields (position-list eq?))
    (define stack (zone-stack))
@@ -56,18 +56,19 @@
      stack)
    
    (define (to-all msg . args)
-     (define (to-all-in-zone zone msg . args)
+     (for-all (lambda (card)
+                (apply card msg args))))
+   
+   (define (for-all proc)
+     (define (to-all-in-zone zone)
        (zone 'for-each (lambda (card)
-                             (apply card msg args))))
+                         (proc card))))
      (let ([pfields (this 'get-player-fields)])
        (pfields 'for-each (lambda (pfield)
-                            (apply to-all-in-zone (pfield 'get-in-play-zone) msg args)
-                            (apply to-all-in-zone (pfield 'get-hand-zone) msg args)
-                            (apply to-all-in-zone (pfield 'get-library-zone) msg args)
-                            (apply to-all-in-zone (pfield 'get-graveyard-zone) msg args)
-                            (apply to-all-in-zone (pfield 'get-library-zone) msg args)))))
-
-   
-   )
+                            (to-all-in-zone (pfield 'get-in-play-zone))
+                            (to-all-in-zone (pfield 'get-hand-zone))
+                            (to-all-in-zone (pfield 'get-library-zone))
+                            (to-all-in-zone (pfield 'get-graveyard-zone))
+                            (to-all-in-zone (pfield 'get-library-zone)))))))
  
  )

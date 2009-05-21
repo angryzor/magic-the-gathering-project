@@ -29,7 +29,7 @@
    (class gui-card-with-actions-control%
      (init-field src)
      (init-field game)
-     (init-field player)                
+     (init-field player)
      
      (inherit-field card)
      

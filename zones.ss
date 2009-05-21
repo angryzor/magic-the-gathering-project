@@ -20,7 +20,10 @@
    
    (define (add-card! card . newpos)
      (apply super 'add-before! card newpos)
-     (card 'changed-zone this))
+     (card 'changed-zone this)
+     (((card 'get-game) 'get-field) 'for-all (lambda (card2)
+                                               (if (not (eq? card card2))
+                                                   (card2 'other-changed-zone card this)))))
    
    (define (delete-card! card)
      (let ([pos (super 'find card)])
