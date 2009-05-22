@@ -12,22 +12,21 @@
  (define-dispatch-subclass (card-sorcery name color cost game player picture)
    (can-play? supports-type? get-type)
    (card-stackable name color cost game player picture)
+   (init (super 'add-to-action-library! act-cast))
         
    (define act-cast (card-action game
                                  "Cast"
                                  (lambda ()
-                                   (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
-                                        (eq? ((game 'get-phases) 'get-current-type) 'main)
-                                        (eq? player (game 'get-active-player))))
+                                   (this 'can-play?))
                                  (lambda ()
-                                   (if ((player 'get-manapool) 'can-afford? cost)
-                                       (begin
-                                         ((super 'get-zone) 'delete-card! this)
-                                         (((game 'get-field) 'get-stack-zone) 'push! this))))))
+                                   ((super 'get-zone) 'delete-card! this)
+                                   (((game 'get-field) 'get-stack-zone) 'push! this))))
 
    (define (can-play?)
-     (and (eq? ((game 'get-phases) 'get-current-type) 'main-phase)
-          (eq? (game 'get-active-player) player)))
+     (and (eq? (super 'get-zone) ((player 'get-field) 'get-hand-zone))
+          (eq? ((game 'get-phases) 'get-current-type) 'main)
+          (eq? (game 'get-active-player) player)
+          ((player 'get-manapool) 'can-afford? cost)))
    
    (define (supports-type? type)
      (or (eq? type card-sorcery) (super 'supports-type? type)))

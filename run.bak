@@ -1,0 +1,8 @@
+#!r6rs
+
+(import (rnrs base (6))
+        (magic game)
+        (magic tenth-edition)
+        (magic mana))
+
+(define mygame (game '("Speler 1" "Speler 2")) (deck-arcanis-guile))

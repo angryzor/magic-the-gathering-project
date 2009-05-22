@@ -11,8 +11,8 @@
          (rnrs io simple)
          (only (scheme base) random)
          (magic object)
-         (magic double-linked-position-list)
-         (magic cards))
+         (magic cards)
+         (magic double-linked-position-list))
  
  (define-dispatch-subclass (zone)
    (add-card! delete-card! move-card!)
@@ -75,7 +75,7 @@
    (define (resolve-one!)
      (let ([card (super 'pop!)])
        (card 'cast)
-       ((((card 'get-player) 'get-field) 'get-graveyard-zone) 'add-card! card)))
+       ((((card 'get-player) 'get-field) 'get-graveyard-zone) 'push! card)))
    )
  
  (define-dispatch-subclass (zone-library)

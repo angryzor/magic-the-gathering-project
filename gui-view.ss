@@ -17,25 +17,33 @@
   (define bm-cache (new gui-bitmap-cache%))
   (define stackview '())
   (define readybtn '())
+  (define zoomview '())
   
   ; Layout *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (prepare-layout)
-    (let ([stackpane (new horizontal-pane% [parent my-main-frame]
-                                           [min-height CARD-HEIGHT])])
-      (set! readybtn (new button% [parent stackpane]
-                                  [label "Ready!"]
-                                  [callback (λ (i e) (player 'set-ready! #t))]))
-      (set! stackview (new gui-card-list-view% [view obj-gui-view]
-                                               [parent stackpane]
-                                               [src ((game 'get-field) 'get-stack-zone)])))
-    (let ([players (game 'get-players)])
-      (players 'for-each (lambda (player)
-                           (pkgs 'add-after! (new gui-player-package% [parent my-main-frame]
-                                                                      [min-width (* CARD-WIDTH 10)]
-                                                                      [game game]
-                                                                      [player player]
-                                                                      [view obj-gui-view]))))))
+    (let* ([main (new horizontal-pane% [parent my-main-frame])]
+           [left (new vertical-pane% [parent main])]
+           [right (new vertical-pane% [parent main])])
+      (set! zoomview (new gui-card-zoom% [game game]
+                          [player player]
+                          [view obj-gui-view]
+                          [parent left]))
+      (let ([stackpane (new horizontal-pane% [parent right]
+                            [min-height CARD-HEIGHT])])
+        (set! readybtn (new button% [parent stackpane]
+                            [label "Ready!"]
+                            [callback (λ (i e) (player 'set-ready! #t))]))
+        (set! stackview (new gui-card-list-view% [view obj-gui-view]
+                             [parent stackpane]
+                             [src ((game 'get-field) 'get-stack-zone)])))
+      (let ([players (game 'get-players)])
+        (players 'for-each (lambda (player)
+                             (pkgs 'add-after! (new gui-player-package% [parent right]
+                                                    [min-width (* CARD-WIDTH 10)]
+                                                    [game game]
+                                                    [player player]
+                                                    [view obj-gui-view])))))))
                            
   
 
@@ -66,7 +74,6 @@
       (yield-card-loop)))
   
   (define (wait-for-card-selection msg)
-    (display "cardwait")
     (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " msg))
     (set! waiting-for-card #t)
     (send readybtn enable #f)
@@ -184,11 +191,14 @@
   (define (get-bm-cache)
     bm-cache)
   
+  (define (zoom-on card)
+    (send zoomview zoom-on card))
+  
   (define (obj-gui-view msg . args)
     (case msg
       ((update) (apply update args))
       ((close) (apply close args))
-      ((wait-for-card-selection) (display "at least it was called :/")(apply wait-for-card-selection args))
+      ((wait-for-card-selection) (apply wait-for-card-selection args))
       ((wait-for-player-selection) (apply wait-for-player-selection args))
       ((waiting-for-card?) (apply waiting-for-card? args))
       ((wait-select-from-card-range) (apply wait-select-from-card-range args))
@@ -196,6 +206,8 @@
       ((prompt) (apply prompt args))
       ((found-card) (apply found-card args))
       ((get-bm-cache) (apply get-bm-cache args))
+      ((zoom-on) (apply zoom-on args))
+      ((get-player) player)
       (else (error 'obj-gui-view "message not understood: ~S" msg))))
   
   (prepare-layout)

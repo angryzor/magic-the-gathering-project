@@ -25,7 +25,8 @@
                                                             (eq? player (game 'get-active-player))))
                                                      (lambda ()
                                                        (set! attacksplayer ((player 'get-gui) 'wait-for-player-selection "Select the player that you want to attack."))
-                                                       (this 'attacks!))))
+                                                       (this 'attacks!)
+                                                       (this 'tap!))))
          (super 'add-to-action-library! (card-action game
                                                      "Block"
                                                      (lambda ()

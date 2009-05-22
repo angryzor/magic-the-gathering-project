@@ -48,9 +48,7 @@
    
    (define (set-ready! val)
      (set! is-ready val)
-     ((game 'get-phases) 'transition)
-     (display "DEBUG: ")
-     (display ((game 'get-phases) 'get-current-type)))
+     ((game 'get-phases) 'transition))
    
    (define (ready?)
      is-ready)

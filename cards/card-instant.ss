@@ -27,7 +27,8 @@
                                          (((game 'get-field) 'get-stack-zone) 'push! this))))))
    
    (define (can-play?)
-     #t)
+     (and ((player 'get-manapool) 'can-afford? cost)
+          (eq? (this 'get-zone) ((player 'get-field) 'get-hand-zone))))
    (define (supports-type? type)
      (or (eq? type card-instant) (super 'supports-type? type)))
    (define (get-type)

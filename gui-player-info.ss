@@ -1,0 +1,19 @@
+#lang scheme/gui
+
+(provide gui-player-info%)
+
+(define gui-player-info% 
+  (class object%
+    (init-field player)
+    (init parent)
+    
+    (define/public (update)
+      (send life set-label (string-append "Life: " (number->string (player 'get-life-counter)))))
+    
+    (define vert (new vertical-pane% [parent parent]))
+    (define name (new message% [label (player 'get-name)]
+                               [parent vert]))
+    (define life (new message% [label "Life: 20"]
+                               [parent vert]))
+    
+    (super-new)))

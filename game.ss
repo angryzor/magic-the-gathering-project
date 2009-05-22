@@ -10,12 +10,9 @@
          (magic phase)
          (magic player)
          (magic gui-view)
-         (magic null-card)
-         (magic tenth-edition)
-         (magic mana)
          )
  
- (define (game names)
+ (define (game names deck)
    (define num-players (length names))
    
    (define (construct)
@@ -24,7 +21,12 @@
                names)
      
      (players 'for-each (lambda (player)
-                          (player 'set-gui! (gui-view player obj-game)))))
+                          (player 'set-gui! (gui-view player obj-game))
+                          (deck 'give-to player obj-game)
+                          (player 'deal-initial-hand)))
+     
+     (players 'for-each (lambda (player)
+                          ((player 'get-gui) 'update))))
    
    (define (get-field)
      field)
@@ -74,36 +76,6 @@
    
    obj-game)
  
-(define (tr)
-  ((a 'get-phases) 'transition)
-  (display ((a 'get-phases) 'get-current-type))
-  (newline)) 
-(define a (game '("Ruben" "Sander")))
-(define b (a 'get-players))
-(define c (b 'value (b 'first-position)))
-(define g (b 'value (b 'next (b 'first-position))))
-(define d (c 'get-field))
-(define e (d 'get-hand-zone))
-(define f (d 'get-library-zone))
-;(e 'add-card! (card-canopy-spider a c))
-;(e 'add-card! (card-sage-owl a c))
-;(e 'add-card! (card-island a c))
-;(e 'add-card! (card-forest a c))
-;(f 'add-card! (card-forest a c))
-;(f 'add-card! (card-canopy-spider a c))
-;(f 'add-card! (card-canopy-spider a c))
-;(f 'add-card! (card-forest a c))
-;(f 'add-card! (card-canopy-spider a c))
-(define z (deck-arcanis-guile))
-(z 'give-to c a)
-(z 'give-to g a)
-(a 'to-all-players 'deal-initial-hand)
-;((deck-arcanis-guile) 'give-to g a)
-((c 'get-gui) 'update)
-((g 'get-gui) 'update)
-
-(tr)
-
 )
  
  

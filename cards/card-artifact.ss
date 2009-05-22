@@ -4,13 +4,13 @@
  (card-artifact)
  (export card-artifact)
  (import (rnrs base (6))
-         (magic cards card-permanent)
+         (magic cards card-tappable)
          (magic object))
 
  ; Card-artifact
  (define-dispatch-subclass (card-artifact name color cost game player picture)
    (supports-type? get-type)
-   (card-permanent name color cost game player picture)
+   (card-tappable name color cost game player picture)
    
    (define (supports-type? type)
      (or (eq? type card-artifact) (super 'supports-type? type)))

@@ -19,7 +19,5 @@
      (action)
      ((game 'get-field) 'to-all 'update-actions)
      ((game 'get-phases) 'transition)
-     (display "DEBUG: ")
-     (display ((game 'get-phases) 'get-current-type))
      (game 'update-all-guis)))
  )

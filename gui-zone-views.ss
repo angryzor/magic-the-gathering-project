@@ -9,11 +9,13 @@
    (class horizontal-pane%
      (init-field view)
      (init-field src)
+     (init [face-down #f])
      (init-field [card-control-constructor (lambda (parent card view)
                                              (new gui-card-with-actions-control%
                                                   [parent parent]
                                                   [card card]
-                                                  [view view]))])
+                                                  [view view]
+                                                  [face-down face-down]))])
      
      (inherit change-children)
      

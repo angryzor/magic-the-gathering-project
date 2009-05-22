@@ -399,7 +399,7 @@
    (define target #f)
    (define (play)
      (define (wait-for-suitable-card card)
-       (if (eq? (card 'get-zone) (((card 'get-player) 'get-field) 'get-stack-zone))
+       (if (eq? (card 'get-zone) (((card 'get-game) 'get-field) 'get-stack-zone))
            card
            (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Cancel\""))))
      (set! target (wait-for-suitable-card ((player 'get-gui) 'wait-for-card-selection "Select a target for \"Cancel\""))))
@@ -437,10 +437,11 @@
    
    (define (other-changed-zone card zone)
      (super 'other-changed-zone card zone)
-     (if (or (and (not (card 'supports-type? card-virtual))
-                  (eq? zone (((card 'get-game) 'get-field) 'get-stack-zone)))
-             (and (not (card 'supports-type? card-land))
-                  (eq? zone (((card 'get-player) 'get-field) 'get-in-play-zone))))
+     (if (and (eq? (card 'get-color) 'blue)
+              (or (and (not (card 'supports-type? card-virtual))
+                       (eq? zone (((card 'get-game) 'get-field) 'get-stack-zone)))
+                  (and (not (card 'supports-type? card-land))
+                       (eq? zone (((card 'get-player) 'get-field) 'get-in-play-zone)))))
          (player 'set-life-counter! (+ 1 (player 'get-life-counter))))))
  
  

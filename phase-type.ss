@@ -113,7 +113,7 @@
  ; Combat phases
  (define (phase-combat-begin-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-begin))
  (define (phase-combat-declare-attackers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-attackers))
- (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-blockers))
+ (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-blockers))
  (define (phase-combat-damage-state game) (stack-resolving-phase-state game (lambda ()
                                                                    (let* ([ap (game 'get-active-player)])
                                                                      (((ap 'get-field) 'get-in-play-zone) 'for-each (lambda (card)
@@ -127,9 +127,9 @@
  
  ; End of turn
  (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn))
- (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-cleanup (lambda ()
-                                                                                                     ((game 'get-players) 'all-true? (lambda (player)
-                                                                                                                                       (<= (((player 'get-field) 'get-hand-zone) 'length) 7))))))
+ (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () (game 'next-turn!)) 'end-cleanup (lambda ()
+                                                                                                                               ((game 'get-players) 'all-true? (lambda (player)
+                                                                                                                                                                 (<= (((player 'get-field) 'get-hand-zone) 'length) 7))))))
  
  
   

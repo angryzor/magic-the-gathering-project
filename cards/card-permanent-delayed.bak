@@ -1,0 +1,11 @@
+#!r6rs
+
+(library
+ (card-permanent-delayed)
+ (export card-permanent-delayed)
+ (import (rnrs base (6))
+         (magic object)
+         (magic cards card-permanent)
+         (magic cards card-virtual-perm-via-stack))
+ 
+ 
