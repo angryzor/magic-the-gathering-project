@@ -63,8 +63,7 @@
      (this 'set-health! (this 'get-toughness))
      (blocker 'set-health! (blocker 'get-toughness))
      (let ([stack ((game 'get-field) 'get-stack-zone)])
-       (stack 'push! (create-virtual-blocked-combat-damage this blocker))
-       (stack 'push! (create-virtual-blocked-combat-damage blocker this))))
+       (stack 'push! (create-virtual-blocked-combat-damage this blocker))))
 
    (define (create-virtual-blocked-combat-damage from to)
      (card-virtual-blocked-combat-damage from to))

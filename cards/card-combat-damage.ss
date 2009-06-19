@@ -24,7 +24,8 @@
      card-virtual-blocked-combat-damage)
    
    (define (cast)
-     (to-creature 'set-health! (- (to-creature 'get-health) (for-creature 'get-power)))))
+     (to-creature 'set-health! (- (to-creature 'get-health) (for-creature 'get-power)))
+     (for-creature 'set-health! (- (for-creature 'get-health) (to-creature 'get-power)))))
  
  (define-dispatch-subclass (card-virtual-direct-combat-damage for-creature to-player)
    (cast supports-type? get-type)

@@ -7,7 +7,8 @@
  (import (rnrs base (6))
          (rnrs io simple)
          (magic mana)
-         (magic fields))
+         (magic fields)
+         (magic cards))
  
  (define (player game field name)
    (define my-field (player-field player))
@@ -84,7 +85,18 @@
        (hand 'add-card! (lib 'pop!))
        (hand 'add-card! (lib 'pop!))
        (hand 'add-card! (lib 'pop!))
-       (hand 'add-card! (lib 'pop!))))
+       (hand 'add-card! (lib 'pop!))
+       
+; DEBUG
+       (call/cc (lambda (return)
+                  (define times 0)
+                  (lib 'for-each (lambda (card)
+                                   (if (card 'supports-type? card-land)
+                                       (begin
+                                         (lib 'move-card! card (my-field 'get-in-play-zone))
+                                         (set! times (+ times 1))
+                                         (if (>= times 4)
+                                             (return))))))))))
    
    (define (obj-player msg . args)
      (case msg
@@ -113,5 +125,6 @@
    obj-player)
  )
 
+     
      
  

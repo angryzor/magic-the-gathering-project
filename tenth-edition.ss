@@ -165,14 +165,14 @@
    
    (define (cast)
      (super 'cast)
-     ((this 'get-player) 'draw-card)))
+     ((((this 'get-player) 'get-field) 'get-hand-zone) 'add-card! ((((this 'get-player) 'get-field) 'get-library-zone) 'pop!))))
  (define-dispatch-subclass (card-virtual-direct-combat-damage-thieving-magpie for-creature to-player)
    (cast)
    (card-virtual-direct-combat-damage for-creature to-player)
    
    (define (cast)
      (super 'cast)
-     ((this 'get-player) 'draw-card)))
+     ((((this 'get-player) 'get-field) 'get-hand-zone) 'add-card! ((((this 'get-player) 'get-field) 'get-library-zone) 'pop!))))
  (define-dispatch-subclass (card-thieving-magpie game player)
    (create-virtual-blocked-combat-damage create-virtual-direct-combat-damage)
    (card-creature "Thieving Magpie"
@@ -382,8 +382,8 @@
                  player
                  "sorceries/card-counsel-of-the-soratami.jpg")
    (define (cast)
-     (player 'draw-card)
-     (player 'draw-card)))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))))
    
    
  ;cancel
@@ -419,15 +419,15 @@
                  player
                  "sorceries/card-tidings.jpg")
    (define (cast)
-     (player 'draw-card)
-     (player 'draw-card)
-     (player 'draw-card)
-     (player 'draw-card)))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))
+     (((player 'get-field) 'get-hand-zone) 'add-card! (((player 'get-field) 'get-library-zone) 'pop!))))
  
  
  ;krakens eye
  (define-dispatch-subclass (card-krakens-eye game player)
-   (other-changed-zone)
+   ();other-changed-zone) it's bugged :/
    (card-artifact "Kraken's Eye"
                   'colorless
                   (mana-list (mana-unit 'colorless) (mana-unit 'colorless))

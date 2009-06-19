@@ -61,6 +61,7 @@
   ; Interface -*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
   
   (define (update)
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " (symbol->string ((game' get-phases) 'get-current-type))))
     (send stackview update)
     (pkgs 'for-each (lambda (pkg)
                       (send pkg update))))
@@ -74,11 +75,11 @@
       (yield-card-loop)))
   
   (define (wait-for-card-selection msg)
-    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " msg))
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " (symbol->string ((game' get-phases) 'get-current-type)) " -- " msg))
     (set! waiting-for-card #t)
     (send readybtn enable #f)
     (yield-card-loop)
-    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name)))
+    (send my-main-frame set-label (string-append "Magic: The Gathering -- " (player 'get-name) " -- " (symbol->string ((game' get-phases) 'get-current-type))))
     card-result)
   
   (define (waiting-for-card?)

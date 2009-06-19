@@ -36,10 +36,7 @@
    (define (get-std-bundle)
      std-bundle)
    
-   (define (obj-phases-fsm msg . args)
-     (case msg
-       ((get-current-type) (apply get-current-type args))
-       (else (apply super msg args)))))
+   )
  
  )
 

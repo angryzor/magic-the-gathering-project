@@ -30,10 +30,10 @@
                 (entry-action)
                 ((game 'get-field) 'to-all 'update-actions)
                 (game 'to-all-players 'set-ready! #f)
-                (to-all-perms 'turn-begin))
+                (to-all-perms 'turn-begin)
+                (game 'update-all-guis))
               (lambda ()
                 (to-all-perms 'turn-end)
-                (game 'update-all-guis)
                 (exit-action)))
 								   
    (define (to-all-perms msg . args)
@@ -111,7 +111,50 @@
  (define (phase-main-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'main))
  
  ; Combat phases
- (define (phase-combat-begin-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-begin))
+ (define-dispatch-subclass (phase-combat-begin-state game)
+   (attach-next!)
+   (phase-state game (lambda () 
+                       (define answers (position-list string=?))
+                       (answers 'from-scheme-list '("Yes" "No"))
+                       (set! attack (= (((game 'get-active-player) 'get-gui) 'prompt 
+                                                                             "Do you want to attack?" 
+                                                                             answers) 0))
+                       ((game 'get-phases) 'transition)) 
+                (lambda () 'ok) 
+                'combat-begin)
+   
+   (define attack #f)
+   (define my-next #f)
+   (define my-same #f)
+   (define my-skip #f)
+   
+   (define (playersready-nostack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (((game 'get-field) 'get-stack-zone) 'empty?)))
+   
+   (define (playersready-somestack?)
+     (and ((game 'get-players) 'all-true? (lambda (player)
+                                            (player 'ready?)))
+          (not (((game 'get-field) 'get-stack-zone) 'empty?))))
+   
+   (define (attach-next! phase skip)
+     (if my-next
+         (super 'remove-transition! my-next))
+     (if my-same
+         (super 'remove-transition! my-same))
+     ; make the stack resolving transitions
+     (set! my-next (fsm-transition (lambda ()
+                                       (and (playersready-nostack?)
+                                            attack)) phase))
+     (set! my-same (fsm-transition playersready-somestack? this (lambda () (((game 'get-field) 'get-stack-zone) 'resolve-one!))))
+     (set! my-skip (fsm-transition (lambda ()
+                                       (not attack)) skip))
+     ; and add them
+     (super 'add-transition! my-next)
+     (super 'add-transition! my-same)
+     (super 'add-transition! my-skip)))
+   
  (define (phase-combat-declare-attackers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-attackers))
  (define (phase-combat-declare-blockers-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'combat-declare-blockers))
  (define (phase-combat-damage-state game) (stack-resolving-phase-state game (lambda ()
@@ -129,7 +172,7 @@
  (define (phase-end-end-of-turn-state game) (stack-resolving-phase-state game (lambda () 'ok) (lambda () 'ok) 'end-end-of-turn))
  (define (phase-end-cleanup-state game) (normal-phase-state game (lambda () 'ok) (lambda () (game 'next-turn!)) 'end-cleanup (lambda ()
                                                                                                                                ((game 'get-players) 'all-true? (lambda (player)
-                                                                                                                                                                 (<= (((player 'get-field) 'get-hand-zone) 'length) 7))))))
+                                                                                                                                                                 (>= (((player 'get-field) 'get-hand-zone) 'length) 7))))))
  
  
   

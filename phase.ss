@@ -17,7 +17,7 @@
          ((std-bundle 'get-beginning-upkeep) 'attach-next! (std-bundle 'get-beginning-draw))
          ((std-bundle 'get-beginning-draw) 'attach-next! (std-bundle 'get-first-main))
          ((std-bundle 'get-first-main) 'attach-next! (std-bundle 'get-combat-begin))
-         ((std-bundle 'get-combat-begin) 'attach-next! (std-bundle 'get-combat-declare-attackers))
+         ((std-bundle 'get-combat-begin) 'attach-next! (std-bundle 'get-combat-declare-attackers) (std-bundle 'get-second-main))
          ((std-bundle 'get-combat-declare-attackers) 'attach-next! (std-bundle 'get-combat-declare-blockers))
          ((std-bundle 'get-combat-declare-blockers) 'attach-next! (std-bundle 'get-combat-damage))
          ((std-bundle 'get-combat-damage) 'attach-next! (std-bundle 'get-combat-end))
